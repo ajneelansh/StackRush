@@ -11,11 +11,10 @@ import (
 )
 
 func main(){
-	port:= os.Getenv(port)
-
+	
 	router:= gin.New()
 	Routes.AuthRoutes(router)
 
-	router.Run(":"+ port)
+	router.Run(":8080")
 
 }
