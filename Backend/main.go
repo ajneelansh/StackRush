@@ -1,20 +1,26 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"Backend/Routes"
 	"log"
-	"net/http"
 	"os"
-	"github.com/ajneelansh/StackRush/Backend/Routes"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main(){
+	err := godotenv.Load()
+	if err != nil [
+		log.Fatal("Error Loading .env ")
+	]
+
+	port = os.Getenv("PORT")
 	
 	router:= gin.New()
+
 	Routes.AuthRoutes(router)
 
-	router.Run(":8080")
+	router.Run(port)
 
 }

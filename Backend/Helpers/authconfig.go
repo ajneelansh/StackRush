@@ -2,11 +2,39 @@ package Helpers
 
 import(
 	"os"
-	"github.com/joho/dotenv"
-	"golang.org/x/"
+	"log"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/github"
+
 )
 
-func authconfig(
-	
+var GoogleOAuthConfig *oauth2.Config
+var GithubOAuthConfig *oauth2.Config
 
-)
+func Authconfig(){
+	err := godotenv.Load()
+
+	if err!= nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	GoogleOAuthConfig = &oauth2.Config{
+		ClientID: os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		RedirectURL: "https://localhost:8080/auth/callback",
+		Scopes:[]string{"https://googleapis.com/auth/userinfo.email"} ,
+		Endpoint: google.Endpoint,
+	}
+
+	GithubOAuthConfig = &oauth2.Config{
+		ClientID: os.Getenv("GITHUB_CLIENT_ID"),
+		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+		RedirectURL: "https://localhost:8080/auth/callback",
+		Scopes:[]string{"user:email"} ,
+		Endpoint: github.Endpoint,
+	}
+
+}
