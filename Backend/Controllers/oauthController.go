@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"log"
+	"errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -50,12 +52,20 @@ func OAuthCallback() gin.HandlerFunc{
 			token, err = Helpers.GithubOAuthConfig.Exchange(context.Background(), code)
 			if err == nil {
 				userInfo, err = fetchGitHubUserInfo(token.AccessToken)
+				if err != nil {	
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
+					return
+				}
 			}
 		} else {
 			provider = "google"
 			token, err = Helpers.GoogleOAuthConfig.Exchange(context.Background(), code)
 			if err == nil {
 				userInfo, err = fetchGoogleUserInfo(token.AccessToken)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
+					return
+				}
 			}
 		}
 	
@@ -63,20 +73,23 @@ func OAuthCallback() gin.HandlerFunc{
 
 	var user Models.User
 	db := Database.DB
-	result := db.Where("outh_provider = ? AND outh_id = ?",provider,userInfo["id"].(string)).First(&user)
 
-	if result.Error == gorm.ErrRecordNotFound {
-		user = Models.User{
-			OAuthProvider:  provider,
-			OAuthID:        userInfo["id"].(string),
-			Email:          userInfo["email"].(string),
-			Name:           userInfo["name"].(string),
-			ProfilePicture: userInfo["picture"].(string),
-		}
-		db.Create(&user)
+	result := db.Where("o_auth_provider = ? AND o_auth_id = ?", provider, getStringValue(userInfo["id"])).First(&user)
+
+if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	user = Models.User{
+		OAuthProvider:  provider,
+		OAuthID:        getStringValue(userInfo["id"]),
+		Email:          getStringValue(userInfo["email"]),
+		Name:           getStringValue(userInfo["name"]),
+		ProfilePicture: getStringValue(userInfo["picture"]),
 	}
+	db.Create(&user)
+}
+
 
 	jwtToken, err := generateJWT(user.Email)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})
 		return
@@ -132,4 +145,11 @@ func generateJWT(email string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}
+
+func getStringValue(value interface{}) string {
+    if str, ok := value.(string); ok {
+        return str
+    }
+    return ""
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"Backend/Database"
+	"Backend/Helpers"
 	"Backend/Routes"
 	"log"
 	"os"
@@ -10,17 +12,24 @@ import (
 )
 
 func main(){
+
+	Database.InitDb()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error Loading .env ")
 	}
 
+	Helpers.Authconfig()
+
 	port := os.Getenv("PORT")
 
 	router:= gin.New()
+	router.SetTrustedProxies(nil)
 
 	Routes.AuthRoute(router)
 
-	router.Run(port)
+    log.Println("Server is running on :8080")
+	router.Run(":"+ port)
 
 }

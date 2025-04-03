@@ -3,7 +3,8 @@ package Database
 import (
 	"fmt"
 	"os"
-	"log"      
+	"log"
+   "Backend/Models"      
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -25,6 +26,7 @@ func InitDb(){
    if err!=nil{
        log.Fatal("Error in connecting database", err)
    }
+   db.AutoMigrate(&Models.User{})
 
    DB = db 
    fmt.Println("DB connected")
