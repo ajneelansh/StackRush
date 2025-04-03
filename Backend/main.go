@@ -11,15 +11,15 @@ import (
 
 func main(){
 	err := godotenv.Load()
-	if err != nil [
+	if err != nil {
 		log.Fatal("Error Loading .env ")
-	]
+	}
 
-	port = os.Getenv("PORT")
-	
+	port := os.Getenv("PORT")
+
 	router:= gin.New()
 
-	Routes.AuthRoutes(router)
+	Routes.AuthRoute(router)
 
 	router.Run(port)
 

@@ -1,6 +1,8 @@
 package Models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type User struct {
 	
@@ -9,6 +11,6 @@ type User struct {
 	OAuthID string `json:"oauth_id" gorm:"unique"`
 	Email string `json:"emial_id"`
 	Name string `json:"name"`
-	ProfilePicture string `json:"pc"`
+	ProfilePicture string `json:"profile_picture"`
 
 }
