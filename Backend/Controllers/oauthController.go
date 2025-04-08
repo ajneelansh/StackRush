@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"log"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,7 @@ func GoogleLogin() gin.HandlerFunc{
 	}
 }
 
-func GithubLogin() gin.HandlerFunc{
+func GithubLogin() gin.HandlerFunc{	
 	return func(c *gin.Context) {
 		url := Helpers.GithubOAuthConfig.AuthCodeURL("randomstate")
 		c.Redirect(http.StatusFound, url)
