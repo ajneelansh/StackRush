@@ -28,6 +28,8 @@ func main(){
 	router.SetTrustedProxies(nil)
 
 	Routes.AuthRoute(router)
+	Routes.AdminRoutes(router)
+	Routes.UserRoute(router)
 
     log.Println("Server is running on :8080")
 	router.Run(":"+ port)

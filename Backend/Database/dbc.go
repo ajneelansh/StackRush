@@ -27,7 +27,7 @@ func InitDb(){
        log.Fatal("Error in connecting database", err)
    }
    db.AutoMigrate(&Models.User{})
-   db.AutoMigrate(&Models.Questons{})
+   db.AutoMigrate(&Models.Questions{})
 
    DB = db 
    fmt.Println("DB connected")
