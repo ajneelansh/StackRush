@@ -21,14 +21,25 @@ func InitDb(){
    }
 
    dsn := os.Getenv("DATABASE_URL")
-   db ,err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+   if dsn == "" {
+       log.Fatal("DATABASE_URL is not set in the environment variables")
+   }
+   db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+   DB = db
 
    if err!=nil{
        log.Fatal("Error in connecting database", err)
    }
-   db.AutoMigrate(&Models.User{})
-   db.AutoMigrate(&Models.Questions{})
+   if err := DB.AutoMigrate(&Models.User{}); err != nil {
+       log.Fatal("Error migrating User model:", err)
+   }
+   if err := DB.AutoMigrate(&Models.Questions{}); err != nil {
+       log.Fatal("Error migrating Questions model:", err)
+   }
 
-   DB = db 
+   DB.AutoMigrate(&Models.User{})
+   DB.AutoMigrate(&Models.Questions{}, &Models.Solution{})
+   
    fmt.Println("DB connected")
 }

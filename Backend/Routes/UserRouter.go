@@ -6,6 +6,6 @@ import (
 )
 
 func UserRoute(incomingRoutes *gin.Engine){
-	incomingRoutes.GET("/getquestions/",Controllers.GetQuestions())
-	incomingRoutes.GET("/getquestionbyid",Controllers.GetQuestionById())
+	incomingRoutes.GET("/getquestions",Controllers.GetQuestions())
+	incomingRoutes.GET("/getquestions:question_id",Controllers.GetQuestionById())
 }

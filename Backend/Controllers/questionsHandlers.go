@@ -7,10 +7,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
- var db *gorm.DB= Database.DB; 
 func GetQuestions() gin.HandlerFunc{
 	return func(c *gin.Context){
           minRatingstr := c.Query("minRating")
@@ -37,7 +35,7 @@ func GetQuestions() gin.HandlerFunc{
 
 		  var questions []Models.Questions
 
-		  result :=db.Where("rating BETWEEN ? AND ?",minRating,maxRating).
+		  result :=Database.DB.Where("rating BETWEEN ? AND ?",minRating,maxRating).
 		  Order("rating ASC").
 		  Offset(offset).
 		  Limit(limit).
@@ -60,7 +58,7 @@ func GetQuestionById() gin.HandlerFunc{
 		  var question Models.Questions
           questionId := c.Param("question_id")
 
-		  result := db.Where("question_id = ?",questionId).Find(&question)
+		  result := Database.DB.Where("question_id = ?",questionId).Find(&question)
 
 		  if result.Error != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
@@ -80,7 +78,7 @@ func UploadQuestions() gin.HandlerFunc {
 			return
 		}
 	
-		result := db.Create(&q)
+		result := Database.DB.Create(&q)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 			return
