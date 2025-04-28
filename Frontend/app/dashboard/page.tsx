@@ -162,7 +162,7 @@ export default function Dashboard() {
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2 bg-purple-900/50 border-purple-700 hover:bg-purple-800">
+                  <Button variant="outline" className="gap-2 bg-purple-900/50 border-white hover:bg-purple-800">
                     <Filter className="h-4 w-4" />
                     <span>Rating: {selectedRating === "all" ? "All" : selectedRating}</span>
                   </Button>
@@ -181,7 +181,7 @@ export default function Dashboard() {
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2 bg-purple-900/50 border-purple-700 hover:bg-purple-800">
+                  <Button variant="outline" className="gap-2 bg-purple-900/50 border-white hover:bg-purple-800">
                     <Filter className="h-4 w-4" />
                     <span>Status: {selectedStatus === "all" ? "All" : selectedStatus}</span>
                   </Button>
@@ -205,7 +205,7 @@ export default function Dashboard() {
   {Object.entries(mockProgressData.ratings).map(([rating, data]) => (
     <Card
       key={rating}
-      className={`border-purple-800 text-white bg-black/40 hover:bg-purple-950/20 transition-colors cursor-pointer ${
+      className={`border-0 text-white bg-purple-950 transition-colors cursor-pointer ${
         selectedRating === rating ? "ring-2 ring-purple-500" : ""
       }`}
       onClick={() => setSelectedRating(rating)}
@@ -232,7 +232,7 @@ export default function Dashboard() {
     </Card>
   ))}
 
-  <Card className="border-purple-800 text-white bg-black/40 hover:bg-purple-950/20 transition-colors col-span-4 justify-between">
+  <Card className="text-white bg-purple-950 border-0 transition-colors col-span-4 justify-between">
     <CardHeader className="pb-2">
       <CardTitle className="text-center text-xl">Overall Rating</CardTitle>
       <CardDescription className="text-center text-gray-300">
@@ -248,10 +248,10 @@ export default function Dashboard() {
   </Card>
 </div>
 
-            <div className="rounded-lg border border-purple-800 bg-black/90 backdrop-blur-sm">
+            <div className="rounded-lg bg-purple-950 backdrop-blur-sm">
               <Table>
                 <TableHeader className="bg-black">
-                  <TableRow className="hover:bg-purple-950/30 border-purple-800">
+                  <TableRow className="hover:bg-purple-950/30 border-white">
                     <TableHead className="px-[80px] text-white">Question</TableHead>
                     <TableHead className="text-white w-[100px]">Rating</TableHead>
                     <TableHead className="text-white w-[100px]">Status</TableHead>
@@ -263,7 +263,7 @@ export default function Dashboard() {
                   {filteredQuestions.map((question, index) => (
                     <TableRow
                       key={question.id}
-                      className="hover:bg-purple-950/10 border-purple-800/50"
+                      className="hover:bg-purple-950/10 border-white/20"
                       ref={index === filteredQuestions.length - 1 ? ref : null}
                     >
                       <TableCell>
