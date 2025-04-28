@@ -8,5 +8,7 @@ type User struct {
 	Email            string    `json:"emial_id"`
 	Name             string    `json:"name"`
 	ProfilePicture   string    `json:"profile_picture"`
-	QuestionSolved   []uint    `json:"question_ids" gorm:"type:json"` 
+	QuestionSolved   []uint    `json:"question_ids" gorm:"type:json"`
+	TotalSolved      int       `json:"total_solved"`
+    RatingWiseSolved map[int]int        `json:"rating_wise_solved" gorm:"type:json"` 
 }

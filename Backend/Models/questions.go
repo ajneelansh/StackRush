@@ -3,7 +3,7 @@ package Models
 
 type Questions struct {
 	
-	QuestionId            int   `json:"question_id" gorm:"primaryKey"`
+	QuestionId            int   `json:"question_id" gorm:"primaryKey;autoIncrement"`
 	QuestionTitle         string    `json:"question_title"`
 	QuestionDescription   string    `json:"question_desc" gorm:"type:text"`
 	Solution              Solution   `json:"solution" gorm:"embedded"`
