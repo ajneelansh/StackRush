@@ -1,7 +1,13 @@
+
+"use client"
 import logoImage from "../assets/logo-nav.png";
 import Image from "next/image";
 
 export const NavBar = () => {
+     const handleSignIn = () => {
+        window.location.href ='http://localhost:8080/auth/google';
+     }
+
     return (
         <div className="bg-black">
     <div className="max-w-screen-xl mx-auto w-full px-4">
@@ -27,7 +33,7 @@ export const NavBar = () => {
                 Sheets
             </a>
            
-            <button className="bg-white py-2 px-4 rounded-lg"> Sign In</button>
+            <button onClick={handleSignIn} className="bg-white py-2 px-4 rounded-lg">Sign In</button>
         </nav>
         
     </div>

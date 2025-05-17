@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useEffect } from "react"
+import axios from "axios"
 import { useInView } from "react-intersection-observer"
 import {
-  BookOpen,
   ChevronDown,
   ExternalLink,
   Filter,
@@ -30,101 +31,85 @@ const useToast = () => ({
     console.log(`Toast: ${title} - ${description}`),
 })
 
-const mockProgressData = {
-  total: 500,
-  solved: 215,
-  ratings: {
-    "1200": { total: 80, solved: 60 },
-    "1300": { total: 70, solved: 50 },
-    "1400": { total: 70, solved: 40 },
-    "1500": { total: 70, solved: 30 },
-    "1600": { total: 70, solved: 20 },
-    "1700": { total: 50, solved: 10 },
-    "1800": { total: 50, solved: 5 },
-    "1900": { total: 40, solved: 0 },
-  },
-}
+const RATINGS = [1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900]
 
-const ratingOptions = [
-  { value: "all", label: "All Ratings" },
-  { value: "1200", label: "1200" },
-  { value: "1300", label: "1300" },
-  { value: "1400", label: "1400" },
-  { value: "1500", label: "1500" },
-  { value: "1600", label: "1600" },
-  { value: "1700", label: "1700" },
-  { value: "1800", label: "1800" },
-  { value: "1900", label: "1900" },
-]
+
+const ratingOptions = [{ value: "all", label: "All Ratings" }, ...RATINGS.map(r => ({ value: String(r), label: String(r) }))]
+
 
 const statusOptions = [
   { value: "all", label: "All Status" },
   { value: "solved", label: "Solved" },
   { value: "attempted", label: "Attempted" },
-  { value: "todo", label: "To Do" },
+  { value: "unattempted", label: "unattempted" },
+  { value: "todo", label: "ToDo" },
 ]
 
-const generateMockQuestions = (count: number) => {
-  const statuses = ["solved", "attempted", "todo"]
-  const ratings = [1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900]
 
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    title: `Data Structure Question ${i + 1}`,
-    rating: ratings[Math.floor(Math.random() * ratings.length)],
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    articleLink: "#",
-    websiteLink: "#",
-    notes: Math.random() > 0.5 ? `Notes for question ${i + 1}` : null,
-    date: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-  }))
-}
 
 export default function Dashboard() {
-  const [selectedRating, setSelectedRating] = useState("all")
+  const [questions, setQuestions] = useState([])
+  const [loading, setLoading] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [questions, setQuestions] = useState(generateMockQuestions(20))
-  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const { toast } = useToast()
+  const [progressData, setProgressData] = useState<{ [key: string]: { total: number; solved: number } }>({})
+  const [selectedRating, setSelectedRating] = useState("1200")
 
-  const { ref, inView } = useInView({
-    threshold: 0,
-  })
+  useEffect(() => {
+    fetchQuestions(selectedRating, 1)
+  }, [selectedRating])
 
-  // Load more questions when scrolling to the bottom
-  const loadMoreQuestions = () => {
-    if (loading) return
-
+  const fetchQuestions = async (rating: string, pageNumber: number) => {
+    if (loading || !hasMore) return
     setLoading(true)
-    setTimeout(() => {
-      const newQuestions = generateMockQuestions(10)
-      setQuestions((prev) => [...prev, ...newQuestions])
+    try {
+      const res = await axios.get(`/api/questions?rating=${rating}&page=${pageNumber}`)
+      const data = res.data
+
+      if (!data.questions || data.questions.length === 0) {
+        setHasMore(false)
+      } else {
+        setQuestions((prev) => (pageNumber === 1 ? data.questions : [...prev, ...data.questions]))
+        setHasMore(data.hasMore)
+        setPage(pageNumber)
+      }
+    } catch (error) {
+      console.error("Error fetching questions:", error)
+      setHasMore(false)
+      toast({
+        title: "Error",
+        description: "Failed to load questions.",
+        variant: "destructive",
+      })
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }, [loading, hasMore])
+
+  useEffect(() => {
+    fetchQuestions(selectedRating, 1)
+  }, [selectedRating, fetchQuestions])
+
+  useEffect(() => {
+   const fetchProgressData = async () => {
+    try {
+      const res = axios.get("/api/progress") 
+      setProgressData(res.data.ratings) 
+    } catch (error) {
+      console.error("Failed to fetch progress data:", error)
+    }
   }
+    fetchProgressData()
+  }, [])
 
-  // Filter questions based on selected rating, status, and search query
-  const filteredQuestions = questions.filter((question) => {
-    const matchesRating = selectedRating === "all" || question.rating === Number.parseInt(selectedRating)
-    const matchesStatus = selectedStatus === "all" || question.status === selectedStatus
-    const matchesSearch = searchQuery === "" || question.title.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesRating && matchesStatus && matchesSearch
-  })
-
-  // Check if we need to load more questions
-  if (inView && !loading) {
-    loadMoreQuestions()
-  }
-
-  const handleStatusChange = (questionId: number, newStatus: string) => {
-    setQuestions((prev) => prev.map((q) => (q.id === questionId ? { ...q, status: newStatus } : q)))
-
-    toast({
-      title: "Status updated",
-      description: `Question ${questionId} marked as ${newStatus}`,
-    })
+  const handleRatingSelect = (rating: string) => {
+    setSelectedRating(rating)
+    setQuestions([])
+    setPage(1)
+    fetchQuestions(rating, 1)
   }
 
   const getStatusColor = (status: string) => {
@@ -135,8 +120,10 @@ export default function Dashboard() {
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
       case "todo":
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+       case "unattempted":
+        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300"
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300"
     }
   }
 
@@ -202,13 +189,13 @@ export default function Dashboard() {
           </header>
           <main className="grid gap-6 p-6">
           <div className="grid gap-4 md:grid-cols-6 md:grid-rows-2">
-  {Object.entries(mockProgressData.ratings).map(([rating, data]) => (
+  {Object.entries(progressData.ratings).map(([rating, data]) => (
     <Card
       key={rating}
       className={`border-0 text-white bg-purple-950 transition-colors cursor-pointer ${
         selectedRating === rating ? "ring-2 ring-purple-500" : ""
       }`}
-      onClick={() => setSelectedRating(rating)}
+      onClick={() => handleRatingSelect(rating)}
     >
       <CardHeader className="pb-2">
         <CardTitle className="text-xl flex justify-between items-center">
@@ -285,15 +272,6 @@ export default function Dashboard() {
                       <TableCell>
                         <div className="flex space-x-2">
                           <a
-                            href={question.articleLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300"
-                          >
-                            <BookOpen className="h-3 w-3" />
-                            Article
-                          </a>
-                          <a
                             href={question.websiteLink}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -323,6 +301,9 @@ export default function Dashboard() {
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange(question.id, "todo")}>
                               Mark as To Do
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(question.id, "unattempted")}>
+                              Mark as Unattempted
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
