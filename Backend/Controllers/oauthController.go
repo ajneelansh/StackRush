@@ -6,7 +6,6 @@ import (
 	"Backend/Models"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -26,13 +25,6 @@ func GoogleLogin() gin.HandlerFunc{
 	}
 }
 
-func GithubLogin() gin.HandlerFunc{	
-	return func(c *gin.Context) {
-		url := Helpers.GithubOAuthConfig.AuthCodeURL("randomstate")
-		c.Redirect(http.StatusFound, url)
-	}
-}
-
 func OAuthCallback() gin.HandlerFunc{
 	return func(c *gin.Context){
 		code := c.Query("code")
@@ -43,21 +35,10 @@ func OAuthCallback() gin.HandlerFunc{
 		
 		var userInfo map[string]interface{}
 		var token *oauth2.Token
-        provider:= ""
 		var err error
 
-		if c.Request.Referer() != "" && c.Request.Referer() == "https://github.com/login/oauth/authorize" {
-			provider = "github"
-			token, err = Helpers.GithubOAuthConfig.Exchange(context.Background(), code)
-			if err == nil {
-				userInfo, err = fetchGitHubUserInfo(token.AccessToken)
-				if err != nil {	
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
-					return
-				}
-			}
-		} else {
-			provider = "google"
+		
+			provider := "google"
 			token, err = Helpers.GoogleOAuthConfig.Exchange(context.Background(), code)
 			if err == nil {
 				userInfo, err = fetchGoogleUserInfo(token.AccessToken)
@@ -66,7 +47,6 @@ func OAuthCallback() gin.HandlerFunc{
 					return
 				}
 			}
-		}
 	
 
 
@@ -89,17 +69,8 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 
 	jwtToken, err := generateJWT(user.Email)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"token":   jwtToken,
-		"user":    user,
-	})
-	
+    c.SetCookie("jwtToken", jwtToken, 3600, "/", "localhost", false, true)
+	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
 	}
 }
 
@@ -115,26 +86,6 @@ func fetchGoogleUserInfo(accessToken string) (map[string]interface{}, error) {
 	return user, err
 }
 
-func fetchGitHubUserInfo(accessToken string) (map[string]interface{}, error) {
-	req, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
-	req.Header.Set("Authorization", "token "+accessToken)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var userInfo map[string]interface{}
-	json.Unmarshal(body, &userInfo)
-	return userInfo, nil
-}
 
 func generateJWT(email string) (string, error) {
 	claims := jwt.MapClaims{

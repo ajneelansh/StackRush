@@ -39,7 +39,9 @@ func InitDb(){
    }
 
    DB.AutoMigrate(&Models.User{})
-   DB.AutoMigrate(&Models.Questions{}, &Models.Solution{})
+   DB.AutoMigrate(&Models.Questions{})
+   DB.AutoMigrate(&Models.UserStats{})
+   DB.AutoMigrate(&Models.UserQuestionStatus{})
    
    fmt.Println("DB connected")
 }

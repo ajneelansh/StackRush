@@ -39,7 +39,7 @@ func GetQuestions() gin.HandlerFunc{
 		  Order("rating ASC").
 		  Offset(offset).
 		  Limit(limit).
-		  Select("id","title"). 
+		  Select("question_id","question_title","link"). 
 		  Find(&questions)
 
 		  if result.Error != nil {
@@ -47,7 +47,10 @@ func GetQuestions() gin.HandlerFunc{
 			return
 		   }
 	
-		c.JSON(http.StatusOK, questions)
+		   c.JSON(http.StatusOK, gin.H{
+			"questions": questions,
+			"hasMore": len(questions) == limit,
+		  })
 	}
 }
 
