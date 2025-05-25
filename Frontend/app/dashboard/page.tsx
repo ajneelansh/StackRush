@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { useEffect } from "react"
-import axios from "axios"
+import { useEffect, useState, useCallback, SetStateAction } from "react"
 import { useInView } from "react-intersection-observer"
+import axios from "axios"
 import {
   ChevronDown,
   ExternalLink,
@@ -57,47 +56,79 @@ export default function Dashboard() {
   const { toast } = useToast()
   const [progressData, setProgressData] = useState<{ [key: string]: { total: number; solved: number } }>({})
   const [selectedRating, setSelectedRating] = useState("1200")
+  const { ref, inView } = useInView({
+    threshold: 0,
+  })
 
-  useEffect(() => {
-    fetchQuestions(selectedRating, 1)
-  }, [selectedRating])
+  const filteredQuestions = questions.filter((question) => {
+    const matchesStatus = selectedStatus === "all" || question.status === selectedStatus
+    const matchesSearch = question.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
 
-  const fetchQuestions = async (rating: string, pageNumber: number) => {
-    if (loading || !hasMore) return
-    setLoading(true)
-    try {
-      const res = await axios.get(`/api/questions?rating=${rating}&page=${pageNumber}`)
-      const data = res.data
 
-      if (!data.questions || data.questions.length === 0) {
-        setHasMore(false)
-      } else {
-        setQuestions((prev) => (pageNumber === 1 ? data.questions : [...prev, ...data.questions]))
-        setHasMore(data.hasMore)
-        setPage(pageNumber)
+  const fetchQuestions = useCallback(
+    async (rating: string | number, pageNumber: number) => {
+      if (loading || !hasMore) return;
+      setLoading(true);
+  
+      try {
+        const res = await axios.get("/api/questions", {
+          params: {
+            minRating: rating,
+            maxRating: rating,
+            page: pageNumber,
+            limit: 10,
+          },
+        });
+  
+        const data = res.data;
+  
+        if (!data || data.length === 0) {
+          setHasMore(false);
+        } else {
+          setQuestions((prev) => (pageNumber === 1 ? data : [...prev, ...data]));
+          setHasMore(data.length >= 10); 
+          setPage(pageNumber);
+        }
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching questions:", error)
-      setHasMore(false)
-      toast({
-        title: "Error",
-        description: "Failed to load questions.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [loading, hasMore])
+    },
+    [loading, hasMore]
+  );
 
   useEffect(() => {
     fetchQuestions(selectedRating, 1)
   }, [selectedRating, fetchQuestions])
 
   useEffect(() => {
+    if (inView && hasMore && !loading) {
+      fetchQuestions(selectedRating, page + 1)
+    }
+  }, [inView])
+
+  const handleStatusChange = async (questionId: unknown, newStatus:unknown) => {
+    try {
+      await axios.post("/api/update-status", {
+        questionId,
+        rating: selectedRating,
+        status: newStatus,
+      })
+    } catch (error) {
+      console.error("Failed to update question status", error)
+      
+    }
+  }
+
+
+  useEffect(() => {
    const fetchProgressData = async () => {
     try {
-      const res = axios.get("/api/progress") 
-      setProgressData(res.data.ratings) 
+      const res = await axios.get("/api/progress") 
+      setProgressData(res.data || {})
     } catch (error) {
       console.error("Failed to fetch progress data:", error)
     }
@@ -189,7 +220,7 @@ export default function Dashboard() {
           </header>
           <main className="grid gap-6 p-6">
           <div className="grid gap-4 md:grid-cols-6 md:grid-rows-2">
-  {Object.entries(progressData.ratings).map(([rating, data]) => (
+  {Object.entries(progressData).map(([rating, data]) => (
     <Card
       key={rating}
       className={`border-0 text-white bg-purple-950 transition-colors cursor-pointer ${
