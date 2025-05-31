@@ -73,7 +73,7 @@ export default function Dashboard() {
       setLoading(true);
   
       try {
-        const res = await axios.get("/api/questions", {
+        const res = await axios.get("http://localhost:8080/getquestions", {
           params: {
             minRating: rating,
             maxRating: rating,
@@ -110,18 +110,6 @@ export default function Dashboard() {
     }
   }, [inView])
 
-  const handleStatusChange = async (questionId: unknown, newStatus:unknown) => {
-    try {
-      await axios.post("/api/update-status", {
-        questionId,
-        rating: selectedRating,
-        status: newStatus,
-      })
-    } catch (error) {
-      console.error("Failed to update question status", error)
-      
-    }
-  }
 
 
   useEffect(() => {
@@ -142,22 +130,7 @@ export default function Dashboard() {
     setPage(1)
     fetchQuestions(rating, 1)
   }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "solved":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "attempted":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "todo":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-       case "unattempted":
-        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300"
-      default:
-        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300"
-    }
-  }
-
+  
   return (
     <div className="bg-black bg-gradient-to-b from-black to-purple-950 flex h-screen text-white">
      <div className="w-64 min-h-screen border-r bg-purple-900">
@@ -272,9 +245,7 @@ export default function Dashboard() {
                   <TableRow className="hover:bg-purple-950/30 border-white">
                     <TableHead className="px-[80px] text-white">Question</TableHead>
                     <TableHead className="text-white w-[100px]">Rating</TableHead>
-                    <TableHead className="text-white w-[100px]">Status</TableHead>
                     <TableHead className="text-white w-[150px]">Links</TableHead>
-                    <TableHead className="text-white w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -287,17 +258,11 @@ export default function Dashboard() {
                       <TableCell>
                         <div>
                           <div className="px-[40px] text-gray font-medium">{question.title}</div>
-                          {question.notes && <div className="px-[40px] text-xs text-gray-400 mt-1">Note: {question.notes}</div>}
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-white bg-purple-900/50 border-purple-700">
                           {question.rating}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getStatusColor(question.status)}`}>
-                          {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -312,32 +277,6 @@ export default function Dashboard() {
                             Solve
                           </a>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleStatusChange(question.id, "solved")}>
-                              Mark as Solved
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(question.id, "attempted")}>
-                              Mark as Attempted
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(question.id, "todo")}>
-                              Mark as To Do
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(question.id, "unattempted")}>
-                              Mark as Unattempted
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
