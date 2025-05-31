@@ -55,6 +55,23 @@ func GetQuestions() gin.HandlerFunc{
 }
 
 
+func GetProgressData() gin.HandlerFunc {
+	return func(c *gin.Context){
+		var progressData []Models.UserStats
+		userId := c.Query("user_id")
+		result := Database.DB.Model(&Models.UserStats{}).
+			Where("user_id = ?", userId).
+			Find(&progressData)
+
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, progressData)
+	}
+}
+
 func GetQuestionById() gin.HandlerFunc{
 	return func(c *gin.Context){
 
