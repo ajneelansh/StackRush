@@ -39,7 +39,7 @@ func GetQuestions() gin.HandlerFunc{
 		  Order("rating ASC").
 		  Offset(offset).
 		  Limit(limit).
-		  Select("question_id","question_title","link"). 
+		  Select("question_id","question_title","link","rating"). 
 		  Find(&questions)
 
 		  if result.Error != nil {
@@ -61,6 +61,7 @@ func GetProgressData() gin.HandlerFunc {
 		userId := c.Query("user_id")
 		result := Database.DB.Model(&Models.UserStats{}).
 			Where("user_id = ?", userId).
+			Select("user_id, total_solved, solved_by_rating").
 			Find(&progressData)
 
 		if result.Error != nil {

@@ -7,7 +7,7 @@ type User struct {
 	UserId           int       `json:"user_id" gorm:"primaryKey;autoIncrement"`
 	OAuthProvider    string    `json:"oauth_provider"`
 	OAuthID          string    `json:"oauth_id" gorm:"unique"`
-	Email            string    `json:"emial_id"`
+	Email            string    `json:"email_id"`
 	Name             string    `json:"name"`
 	ProfilePicture   string    `json:"profile_picture"`
 }
@@ -17,7 +17,7 @@ type UserStats struct {
 	TotalSolved       int    `json:"total_solved" gorm:"default:0"`
 	SolvedByRating   datatypes.JSON   `gorm:"type:json"`
 
-	User User `gorm:"foreignKey:UserId;references:UserId"`
+	User User `gorm:"foreignKey:UserId;references:UserId;constraint:OnDelete:CASCADE"`
 }
 
 type UserQuestionStatus struct {

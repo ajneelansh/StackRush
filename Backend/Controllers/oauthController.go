@@ -6,14 +6,16 @@ import (
 	"Backend/Models"
 	"context"
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"os"
 	"time"
-	"errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -63,13 +65,35 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		Name:           getStringValue(userInfo["name"]),
 		ProfilePicture: getStringValue(userInfo["picture"]),
 	}
-	db.Create(&user)
+
+	if err := db.Create(&user).Error; err != nil {
+		log.Println("User insert failed:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User creation failed"})
+		return
+	}
+
+	log.Println("Created user ID:", user.UserId)
+
+	userStats := Models.UserStats{
+		UserId:         user.UserId,
+		TotalSolved:    0,
+		SolvedByRating: datatypes.JSON([]byte(`{"1350":0,"1500":0,"1650":0,"1800":0,"1950":0,"2100":0}`)), 
+	}
+
+	if err := db.Create(&userStats).Error; err != nil {
+		log.Println("UserStats insert failed:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "UserStats creation failed"})
+		return
+	}
 }
 
-
-	jwtToken, err := generateJWT(user.Email)
-
-    c.SetCookie("jwtToken", jwtToken, 3600, "/", "localhost", false, true)
+	jwtToken, err := generateJWT(user.UserId)
+	if err != nil {
+		log.Println("JWT generation failed:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "JWT generation failed"})
+		return
+	}
+    c.SetCookie("token", jwtToken, 3600*24, "/", "localhost", true, true)
 	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
 	}
 }
@@ -87,9 +111,9 @@ func fetchGoogleUserInfo(accessToken string) (map[string]interface{}, error) {
 }
 
 
-func generateJWT(email string) (string, error) {
+func generateJWT(userId int) (string, error) {
 	claims := jwt.MapClaims{
-		"email": email,
+		"user_id": userId,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	}
 
