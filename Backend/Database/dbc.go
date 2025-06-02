@@ -37,11 +37,12 @@ func InitDb(){
    if err := DB.AutoMigrate(&Models.Questions{}); err != nil {
        log.Fatal("Error migrating Questions model:", err)
    }
-
-   DB.AutoMigrate(&Models.User{})
-   DB.AutoMigrate(&Models.Questions{})
-   DB.AutoMigrate(&Models.UserStats{})
-   DB.AutoMigrate(&Models.UserQuestionStatus{})
+   if err := DB.AutoMigrate(&Models.UserStats{}); err != nil {
+    log.Fatal("Error migrating UserStats model:", err)
+   }
+   if err := DB.AutoMigrate(&Models.UserQuestionStatus{}); err != nil {
+    log.Fatal("Error migrating UserQuestionStatus model:", err)
+   }
    
    fmt.Println("DB connected")
 }

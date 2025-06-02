@@ -1,11 +1,8 @@
 package Middleware
 
 import (
-	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -13,12 +10,9 @@ import (
 
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := godotenv.Load()
-	    if err != nil {
-		log.Fatal("Error Loading .env ")
-	    }
 		JwtSecret := os.Getenv("JWT_SECRET")
 		tokenString, err := c.Cookie("token")
+
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: No token provided"})
 			c.Abort()
@@ -42,9 +36,10 @@ func RequireAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		
 
 		
-		userID, ok := claims["user_id"].(string)
+		userID, ok := claims["user_id"].(float64)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: user_id not found"})
 			c.Abort()

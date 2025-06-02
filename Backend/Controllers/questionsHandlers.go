@@ -11,59 +11,108 @@ import (
 
 func GetQuestions() gin.HandlerFunc{
 	return func(c *gin.Context){
-          minRatingstr := c.Query("minRating")
-		  maxRatingstr := c.Query("maxRating")
-		  page, err:= strconv.Atoi(c.DefaultQuery("page","1"))
-		  if err != nil{
-			c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid page"})
-		   }
-		  limit, err:= strconv.Atoi(c.DefaultQuery("limit","10"))
-		  if err != nil{
-			c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid page"})
-		   }
+		minRating, _ := strconv.Atoi(c.Query("minRating"))
+		maxRating, _ := strconv.Atoi(c.Query("maxRating"))
+		page, _ := strconv.Atoi(c.Query("page"))
+		limit, _ := strconv.Atoi(c.Query("limit"))
+		offset := (page - 1) * limit
 
-		  minRating, err := strconv.Atoi(minRatingstr)
-		   if err != nil{
-			c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid minRating"})
-		   }
-		  maxRating,err:= strconv.Atoi(maxRatingstr)
-		  if err != nil{
-			c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid maxRating"})
-		  }
-	  
-		  offset := (page - 1) * limit
-
-		  var questions []Models.Questions
-
-		  result :=Database.DB.Where("rating BETWEEN ? AND ?",minRating,maxRating).
-		  Order("rating ASC").
-		  Offset(offset).
-		  Limit(limit).
-		  Select("question_id","question_title","link","rating"). 
-		  Find(&questions)
-
-		  if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		userIDValue, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
-		   }
-	
-		   c.JSON(http.StatusOK, gin.H{
-			"questions": questions,
-			"hasMore": len(questions) == limit,
-		  })
+		}
+		userID := userIDValue.(float64)
+
+		type QuestionWithStatus struct {
+			QuestionID     int    `json:"question_id"`
+			QuestionTitle  string `json:"question_title"`
+			Rating         int    `json:"rating"`
+			Link           string `json:"link"`
+			Status         string `json:"status"`
+		}
+
+		var results []QuestionWithStatus
+
+		query := `
+		SELECT q.question_id, q.question_title, q.rating, q.link,
+		       COALESCE(uqs.status, 'Unsolved') as status
+		FROM questions q
+		LEFT JOIN user_question_statuses uqs
+		       ON q.question_id = uqs.question_id AND uqs.user_id = ?
+		WHERE q.rating BETWEEN ? AND ?
+		ORDER BY q.rating
+		LIMIT ? OFFSET ?
+		`
+
+		if err := Database.DB.Raw(query, userID, minRating, maxRating, limit, offset).Scan(&results).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch questions"})
+			return
+		}
+
+		c.JSON(http.StatusOK, results)
+	}
+}
+
+type StatusUpdateInput struct {
+	QuestionId int    `json:"question_id"` 
+	Status     string `json:"status"`      
+}
+
+func UpdateQuestionStatus() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var input StatusUpdateInput
+
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+			return
+		}
+
+		userIDRaw, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
+		userID := userIDRaw.(float64)
+
+		var existing Models.UserQuestionStatus
+		err := Database.DB.First(&existing, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
+
+		if err == nil {
+			
+			existing.Status = input.Status
+			Database.DB.Save(&existing)
+
+		} else {
+			newStatus := Models.UserQuestionStatus{
+				UserId:    int(userID),
+				QuestionId: input.QuestionId,
+				Status:     input.Status,
+			}
+			Database.DB.Create(&newStatus)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
 	}
 }
 
 
 func GetProgressData() gin.HandlerFunc {
-	return func(c *gin.Context){
-		var progressData []Models.UserStats
-		userId := c.Query("user_id")
+	return func(c *gin.Context) {
+		
+		userId, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
+
+		var progressData Models.UserStats
+
+		
 		result := Database.DB.Model(&Models.UserStats{}).
 			Where("user_id = ?", userId).
 			Select("user_id, total_solved, solved_by_rating").
-			Find(&progressData)
-
+			First(&progressData) 
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 			return

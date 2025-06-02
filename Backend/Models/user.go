@@ -23,7 +23,7 @@ type UserStats struct {
 type UserQuestionStatus struct {
 	UserId          int   `gorm:"primaryKey"`
 	QuestionId      int   `gorm:"primaryKey"`
-	Status     string    `gorm:"type:enum('unsolved','attempted','solved','todo');default:'unattempted'"`
+	Status     string    `gorm:"type:varchar(20)"`
 
 	User     User     `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
     Question Questions`gorm:"foreignKey:QuestionId;constraint:OnDelete:CASCADE"`
