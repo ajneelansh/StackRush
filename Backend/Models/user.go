@@ -16,8 +16,6 @@ type UserStats struct {
 	UserId            int    `gorm:"primaryKey"`  
 	TotalSolved       int    `json:"total_solved" gorm:"default:0"`
 	SolvedByRating   datatypes.JSON   `gorm:"type:json"`
-
-	User User `gorm:"foreignKey:UserId;references:UserId;constraint:OnDelete:CASCADE"`
 }
 
 type UserQuestionStatus struct {

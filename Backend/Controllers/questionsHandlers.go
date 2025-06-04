@@ -3,10 +3,13 @@ package Controllers
 import (
 	"Backend/Database"
 	"Backend/Models"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 func GetQuestions() gin.HandlerFunc{
@@ -74,11 +77,83 @@ func UpdateQuestionStatus() gin.HandlerFunc {
 			return
 		}
 		userID := userIDRaw.(float64)
+	var existingStatus Models.UserQuestionStatus
+	err := Database.DB.First(&existingStatus, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
+	if err != nil && err.Error() != "record not found" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch existing status"})
+		return
+	}
 
-		var existing Models.UserQuestionStatus
-		err := Database.DB.First(&existing, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
+	if existingStatus.Status == "Solved" && input.Status != "Solved" {
+		var userprogress Models.UserStats
+		var solvedByRatingMap map[string]int
+		var question Models.Questions
 
-		if err == nil {
+		err2 := Database.DB.First(&userprogress, "user_id = ?", userID).Error
+		err3 := Database.DB.First(&question, "question_id = ?", input.QuestionId).Error
+		if err2 != nil || err3 != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user progress or question"})
+			return
+		}
+
+		if err := json.Unmarshal(userprogress.SolvedByRating, &solvedByRatingMap); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse SolvedByRating"})
+			return
+		}
+
+		ratingKey := fmt.Sprintf("%d", question.Rating)
+		if solvedByRatingMap[ratingKey] > 0 {
+			solvedByRatingMap[ratingKey] -= 1
+		}
+
+		updatedJSON, err := json.Marshal(solvedByRatingMap)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update SolvedByRating"})
+			return
+		}
+
+		userprogress.SolvedByRating = datatypes.JSON(updatedJSON)
+		if err := Database.DB.Save(&userprogress).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save progress"})
+			return
+		}
+	} else if input.Status == "Solved" {
+		var userprogress Models.UserStats
+		var solvedByRatingMap map[string]int
+		var question Models.Questions
+
+		err2 := Database.DB.First(&userprogress, "user_id = ?", userID).Error
+		err3 := Database.DB.First(&question, "question_id = ?", input.QuestionId).Error
+		if err2 != nil || err3 != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user progress or question"})
+			return
+		}
+
+		if err := json.Unmarshal(userprogress.SolvedByRating, &solvedByRatingMap); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse SolvedByRating"})
+			return
+		}
+
+		ratingKey := fmt.Sprintf("%d", question.Rating)
+		solvedByRatingMap[ratingKey] += 1
+
+		updatedJSON, err := json.Marshal(solvedByRatingMap)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update SolvedByRating"})
+			return
+		}
+
+		userprogress.SolvedByRating = datatypes.JSON(updatedJSON)
+		if err := Database.DB.Save(&userprogress).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save progress"})
+			return
+		}
+	}
+
+	var existing Models.UserQuestionStatus
+		err4:= Database.DB.First(&existing, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
+
+		if err4 == nil {
 			
 			existing.Status = input.Status
 			Database.DB.Save(&existing)

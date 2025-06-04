@@ -77,7 +77,7 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 	userStats := Models.UserStats{
 		UserId:         user.UserId,
 		TotalSolved:    0,
-		SolvedByRating: datatypes.JSON([]byte(`{"1350":0,"1500":0,"1650":0,"1800":0,"1950":0,"2100":0}`)), 
+		SolvedByRating: datatypes.JSON([]byte(`{"1350":0,"1500":0,"1650":0,"1800":0,"1950":0}`)), 
 	}
 
 	if err := db.Create(&userStats).Error; err != nil {
