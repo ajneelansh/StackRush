@@ -33,7 +33,7 @@ export const NavBar = () => {
                 Sheets
             </a>
            
-            <button onClick={handleSignIn} className="bg-white py-2 px-4 rounded-lg">Sign In</button>
+            <button onClick={handleSignIn} className="bg-white py-2 px-4 rounded-lg cursor-pointer">Sign In</button>
         </nav>
         
     </div>

@@ -1,10 +1,8 @@
 "use client"
 
-import { useEffect, useState, useCallback, SetStateAction } from "react"
-import { useInView } from "react-intersection-observer"
+import { useEffect, useState, useCallback} from "react"
 import axios from "axios"
 import {
-  ChevronDown,
   ExternalLink,
   Filter,
   MoreHorizontal,
@@ -16,8 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -26,10 +22,6 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SideBar } from "@/components/SideBar"
 
-const useToast = () => ({
-  toast: ({ title, description }: { title: string; description: string }) =>
-    console.log(`Toast: ${title} - ${description}`),
-})
 
 const RATINGS = [1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900]
 
@@ -69,7 +61,6 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const { toast } = useToast();
   const [progressData, setProgressData] = useState<ProgressData>({
     total_solved: 0,
     solved_by_rating: {}

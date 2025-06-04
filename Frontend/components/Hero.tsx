@@ -1,7 +1,10 @@
-
+"use client"
 export const Hero =() => {
+    const handleSignIn = () => {
+            window.location.href ='http://localhost:8080/auth/google';
+         }
     return ( 
-   
+        
         <div className="h-[850px] bg-black text-white bg-[linear-gradient(to_bottom,#000,#200D42_34%,#4F21A1_65%,#A46EDB_82%)] py-[72px] sm: py-24 relative overflow-clip"> 
           
           <div className="absolute inset-0 z-0">
@@ -22,7 +25,7 @@ export const Hero =() => {
             <p className="text-center text-xl mt-8 max-w-4xl"> We’re building the ultimate platform that blends the depth of DSA with the precision of CP ratings, guiding you to the right questions at the right time. </p>
            </div>   
          <div className="flex justify-center mt-8">
-             <button className="bg-white text-black py-3 px-5 rounded-lg font-medium"> Get Started </button>
+             <button className="bg-white text-black py-3 px-5 rounded-lg font-medium cursor-pointer" onClick={handleSignIn}> Get Started </button>
             </div>
            </div> 
           
