@@ -1,7 +1,7 @@
 "use client"
 export const Hero =() => {
     const handleSignIn = () => {
-            window.location.href ='http://localhost:8080/auth/google';
+            window.location.href ='http://codehurdle.com/auth/google';
          }
     return ( 
         

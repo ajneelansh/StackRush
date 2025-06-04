@@ -83,7 +83,7 @@ export default function Dashboard() {
       setLoading(true);
 
       try {
-        const res = await axios.get("http://localhost:8080/getquestions", {
+        const res = await axios.get("http://codehurdle.com/getquestions", {
           withCredentials: true,
           params: {
             minRating: rating,
@@ -124,7 +124,7 @@ export default function Dashboard() {
     const fetchProgressData = async () => {
       if (!selectedRating) return;
       try {
-        const res = await axios.get("http://localhost:8080/getprogress", {
+        const res = await axios.get("http://codehurdle.com/getprogress", {
           withCredentials: true, 
         });
         setProgressData({
@@ -175,7 +175,7 @@ export default function Dashboard() {
         );
 
         await axios.post(
-          "http://localhost:8080/updatequestionstatus",
+          "http://codehurdle.com/updatequestionstatus",
           {
             question_id: questionId,
             status: newStatus,
@@ -194,8 +194,6 @@ export default function Dashboard() {
       }
      fetchProgressData();
     };
-
-  
 
   return (
     <div className="bg-black bg-gradient-to-b from-black to-purple-950 flex h-screen text-white">
