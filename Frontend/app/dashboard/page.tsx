@@ -54,11 +54,11 @@ type ProgressData = {
 };
 
 const TOTAL_PROBLEMS: { [rating: string]: number } = {
-  "1350": 15,
-  "1500": 20,
-  "1650": 18,
-  "1800": 22,
-  "1950": 17,
+  "1350": 60,
+  "1500": 60,
+  "1650": 60,
+  "1800": 60,
+  "1950": 60,
 };
 
 
@@ -122,6 +122,8 @@ export default function Dashboard() {
   );
 
   
+    
+    
   useEffect(() => {
     fetchQuestions(selectedRating, page);
   }, [selectedRating, page]);
@@ -134,7 +136,10 @@ export default function Dashboard() {
         const res = await axios.get("http://localhost:8080/getprogress", {
           withCredentials: true, 
         });
-        setProgressData(res.data || {});
+        setProgressData({
+          total_solved: res.data?.total_solved || 0,
+          solved_by_rating: res.data?.SolvedByRating || {},
+        });
       } catch (error) {
         console.error("Failed to fetch progress data:", error);
       }
@@ -144,13 +149,16 @@ export default function Dashboard() {
       fetchProgressData();
     }, [selectedRating]);
 
-  const handleRatingSelect = (rating: string) => {
-    if (selectedRating !== rating) {
-      setSelectedRating(rating);
-    }
-    setQuestions([]);
-    setPage(1);
-  };
+    const handleRatingSelect = (rating: string) => {
+      if (selectedRating === rating) {
+        setSelectedRating("all");
+      } else {
+        setSelectedRating(rating);
+      }
+      setQuestions([]);
+      setPage(1);
+    };
+    
 
   const handlePrevPage = () => {
     if (page > 1) {
@@ -166,7 +174,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleStatusUpdate = async (questionId: number, newStatus: "Solved" | "Attempted" | "Unsolved") => {
+  const handleStatusUpdate = async (questionId: number, newStatus: "Solved" | "Attempted" | "Unsolved", rating :Question["rating"]) => {
       try {
        
         setQuestions((prev) =>
@@ -180,6 +188,7 @@ export default function Dashboard() {
           {
             question_id: questionId,
             status: newStatus,
+            rating: rating,
           },
           { withCredentials: true }
         );
@@ -190,9 +199,9 @@ export default function Dashboard() {
           q.question_id === questionId ? { ...q, status: q.status } : q
         )
       );
-      }
-
      
+      }
+     fetchProgressData();
     };
 
   
@@ -244,7 +253,7 @@ export default function Dashboard() {
         <main className="grid gap-6 p-6">
           <div className="grid gap-4 md:grid-cols-6 md:grid-rows-2">
           {Object.entries(TOTAL_PROBLEMS).map(([rating, total]) => {
-    const solved = progressData.solved_by_rating?.[rating] || 0;
+    const solved = progressData.solved_by_rating?.[Number(rating)];
     const percentage = Math.round((solved / total) * 100);
 
     return (
@@ -339,17 +348,17 @@ export default function Dashboard() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-purple-950 border-purple-700 text-white">
         <DropdownMenuItem
-          onClick={() => handleStatusUpdate(question.question_id, "Solved")}
+          onClick={() => handleStatusUpdate(question.question_id, "Solved",question.rating)}
         >
           Mark as Solved
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleStatusUpdate(question.question_id, "Attempted")}
+          onClick={() => handleStatusUpdate(question.question_id, "Attempted",question.rating)}
         >
           Mark as Attempted
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleStatusUpdate(question.question_id, "Unsolved")}
+          onClick={() => handleStatusUpdate(question.question_id, "Unsolved", question.rating)}
         >
           Mark as Unsolved
         </DropdownMenuItem>
@@ -380,7 +389,7 @@ export default function Dashboard() {
               </Button>
             </div>
             {filteredQuestions.length === 0 && !loading && (
-              <div className="flex justify-center p-8 text-gray-300">No questions found matching your filters.</div>
+              <div className="flex justify-center p-8 text-gray-300">Please select rating of your choice</div>
             )}
           </div>
         </main>
