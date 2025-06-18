@@ -10,6 +10,7 @@ type User struct {
 	Email            string    `json:"email_id"`
 	Name             string    `json:"name"`
 	ProfilePicture   string    `json:"profile_picture"`
+	ActivityDates []time.Time `gorm:"type:timestamp[]" json:"activity_dates"`
 }
 
 type UserStats struct {

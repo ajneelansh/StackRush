@@ -21,7 +21,7 @@ export const SideBar = () => {
         
         Progress
       </a>
-      {/* more links */}
+
     </nav>
   </div>
   <div className="p-4 border-t border-purple-800/20">
