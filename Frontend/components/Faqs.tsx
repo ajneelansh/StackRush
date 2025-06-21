@@ -59,7 +59,7 @@ const AccordianItem = ({ question, answer }: { question: string, answer: string 
 
 export const FAQs = () => {
     return (
-        <div className="min-h-screen bg-gray-950 text-white py-24 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-950 text-white py-20 relative overflow-hidden">
             {/* Matching background elements */}
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <div className="absolute top-1/4 -right-20 w-96 h-96 bg-purple-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-pulse"></div>

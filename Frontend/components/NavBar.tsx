@@ -43,11 +43,11 @@ export const NavBar = () => {
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex gap-8 items-center ml-12">
-              <a href="#" className="text-gray-300 hover:text-cyan-300 transition-all font-medium group">
+              <a href="#about" className="text-gray-300 hover:text-cyan-300 transition-all font-medium group">
                 About
                 <span className="block h-0.5 bg-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
               </a>
-              <a href="#" className="text-gray-300 hover:text-purple-300 transition-all font-medium group">
+              <a href="#features" className="text-gray-300 hover:text-purple-300 transition-all font-medium group">
                 Features
                 <span className="block h-0.5 bg-purple-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
               </a>
@@ -110,10 +110,10 @@ export const NavBar = () => {
         {isMenuOpen && (
           <div className="md:hidden pb-6 pt-2 bg-gray-900/90 backdrop-blur-lg rounded-lg mt-2 border border-gray-800">
             <nav className="flex flex-col gap-3 px-4">
-              <a href="#" className="text-gray-300 hover:text-cyan-300 transition-all font-medium py-2 border-b border-gray-800">
+              <a href="#about" className="text-gray-300 hover:text-cyan-300 transition-all font-medium py-2 border-b border-gray-800">
                 About
               </a>
-              <a href="#" className="text-gray-300 hover:text-purple-300 transition-all font-medium py-2 border-b border-gray-800">
+              <a href="#features" className="text-gray-300 hover:text-purple-300 transition-all font-medium py-2 border-b border-gray-800">
                 Features
               </a>
               <a href="#" className="text-gray-300 hover:text-pink-300 transition-all font-medium py-2 border-b border-gray-800">

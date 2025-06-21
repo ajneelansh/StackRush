@@ -5,7 +5,7 @@ import { Mail, Phone, Github, Linkedin, Twitter, BookOpen, Award } from "lucide-
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-950 text-white py-16 px-4 sm:px-6 relative overflow-hidden">
+    <footer className="bg-gray-950 text-white py-10 px-4 sm:px-6 relative overflow-hidden">
      
       <div className="absolute inset-0 z-0">
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-900 to-transparent"></div>

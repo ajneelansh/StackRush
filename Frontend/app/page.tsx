@@ -11,8 +11,12 @@ export default function Home() {
     <>
     <NavBar/>
     <Hero/>
+    <section id="features">
     <Features/>
+    </section>
+    <section id="about">
     <MentorsHero/>
+    </section>
     <FAQs/>
     <Footer/>
     </>
