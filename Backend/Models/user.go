@@ -1,6 +1,9 @@
 package Models
 
-import "gorm.io/datatypes"
+import (
+    "time"
+    "gorm.io/datatypes"
+)
 
 
 type User struct {
