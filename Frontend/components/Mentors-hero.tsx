@@ -3,7 +3,7 @@ import { AnimatedTestimonials } from "./Mentors";
 
 export const MentorsHero = () => {
     return (
-        <div className="min-h-screen bg-gray-950 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-gray-950 to-purple-900/30 py-24 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-950 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-gray-950 to-purple-900/30 py-20 relative overflow-hidden">
  
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <div className="absolute top-1/4 -left-20 w-96 h-96 bg-purple-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-20 animate-pulse"></div>
@@ -59,7 +59,7 @@ export const MentorsHero = () => {
                 </div>
 
             
-                <div className="flex justify-center gap-4 mt-16">
+                <div className="flex justify-center gap-4">
                     <button 
                         className="relative bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-3 px-8 rounded-full font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 group overflow-hidden"
                         onClick={() => window.location.href = 'http://codehurdle.com/auth/google'}

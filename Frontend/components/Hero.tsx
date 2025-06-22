@@ -5,7 +5,7 @@ export const Hero = () => {
     }
     
     return ( 
-        <div className="min-h-screen bg-gray-950 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-gray-950 to-purple-900/30 py-24 relative overflow-hidden"> 
+        <div className="min-h-screen bg-gray-950 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-gray-950 to-purple-900/30 py-20 relative overflow-hidden"> 
           
           
             <div className="absolute inset-0 z-0 overflow-hidden">
