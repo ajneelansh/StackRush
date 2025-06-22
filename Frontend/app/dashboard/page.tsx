@@ -12,8 +12,10 @@ import {
   X,
   BookOpen,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Gift
 } from "lucide-react"
+import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -28,6 +30,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SideBar } from "@/components/SideBar"
 import { Heatmap } from "@/components/Heatmap"
+import { UserCoins } from "@/components/ui/UserCoins"
 
 const RATINGS = [1200, 1350 , 1500, 1650 , 1800, 1950]
 const ratingOptions = [{ value: "all", label: "All Ratings" }, ...RATINGS.map(r => ({ value: String(r), label: String(r) }))]
@@ -70,6 +73,8 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; profilePicture: string } | null>(null);
+  const [showRewardsStore, setShowRewardsStore] = useState(false);
+
 
 
   const filteredQuestions = questions.filter((question) => {
@@ -245,7 +250,12 @@ export default function Dashboard() {
       </div>
 
       {/* Right: Profile Icon */}
-      <div className="flex items-center pr-6">
+      <div className="flex items-center gap-2 pr-2">
+      <Link href="/rewardsstore" className="text-purple-400 hover:text-white transition-transform hover:scale-105">
+        <Gift className="h-6 w-6" />
+      </Link>
+
+      <UserCoins/>
       {user?.profilePicture ? (
         <img 
           src={user.profilePicture} 
