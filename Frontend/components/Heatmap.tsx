@@ -1,76 +1,98 @@
-// components/Heatmap.tsx
 "use client"
 
 import React from "react"
-import { eachDayOfInterval, format, subDays } from "date-fns"
-
-const getColor = (count: number) => {
-  if (count === 0) return "bg-gray-800 border-gray-700"
-  if (count < 3) return "bg-cyan-900 border-cyan-700"
-  if (count < 6) return "bg-cyan-700 border-cyan-500"
-  if (count < 10) return "bg-purple-700 border-purple-500"
-  return "bg-purple-500 border-purple-400"
-}
+import {
+  eachDayOfInterval,
+  format,
+  subDays,
+} from "date-fns"
 
 interface HeatmapProps {
   data?: Record<string, number>
 }
 
-export const Heatmap: React.FC<HeatmapProps> = ({ data = {} }) => {
-  const endDate = new Date()
-  const startDate = subDays(endDate, 365)
-
-  const dates = eachDayOfInterval({ start: startDate, end: endDate })
-
-  const columns: Date[][] = []
-  for (let i = 0; i < dates.length; i += 7) {
-    columns.push(dates.slice(i, i + 7))
+const getColor = (count: number) => {
+    if (count === 0) return "bg-gray-1000 border-gray-800"
+    if (count < 3) return "bg-gradient-to-br from-green-300 to-green-100 border-green-200"
+    if (count < 6) return "bg-gradient-to-br from-green-600 to-green-400 border-green-500"
+    return "bg-gradient-to-br from-green-900 to-green-700 border-green-800"
   }
+  
 
-  const monthLabels: { index: number; label: string }[] = []
-  let lastMonth = ""
-  columns.forEach((week, i) => {
-    const firstDay = week[0]
-    const currentMonth = format(firstDay, "MMM")
-    if (currentMonth !== lastMonth) {
-      monthLabels.push({ index: i, label: currentMonth })
-      lastMonth = currentMonth
+export const Heatmap: React.FC<HeatmapProps> = ({ data = {} }) => {
+  const today = new Date()
+  const startDate = subDays(today, 365)
+  const allDates = eachDayOfInterval({ start: startDate, end: today })
+
+  // Group by month
+  const months: { label: string; days: Date[] }[] = []
+  let currentMonth = ""
+  let currentDays: Date[] = []
+
+  allDates.forEach((day, i) => {
+    const monthLabel = format(day, "MMMM")
+    if (monthLabel !== currentMonth) {
+      if (currentDays.length > 0) {
+        months.push({ label: currentMonth, days: currentDays })
+      }
+      currentMonth = monthLabel
+      currentDays = [day]
+    } else {
+      currentDays.push(day)
+    }
+
+    if (i === allDates.length - 1) {
+      months.push({ label: currentMonth, days: currentDays })
     }
   })
 
   return (
-    <div className="overflow-x-auto mb-8">
-      <h2 className="text-white font-semibold text-sm mb-2">Submissions in the past year</h2>
-      <div className="flex flex-col gap-1">
-        <div className="relative flex">
-          {monthLabels.map(({ index, label }) => (
-            <div
-              key={label + index}
-              style={{ marginLeft: index * 18 }}
-              className="absolute text-xs text-purple-400"
-            >
-              {label}
+    <div className="overflow-x-auto mb-8 pb-4">
+
+      <div className="flex items-end gap-2">
+        {months.map((month, i) => {
+          const first28 = month.days.slice(0, 28)
+          const overflow = month.days.slice(28)
+
+          // 28 days → 4 columns × 7 rows
+          const columns: Date[][] = [[], [], [], []]
+          for (let j = 0; j < first28.length; j++) {
+            columns[j % 4].push(first28[j])
+          }
+
+          // Add overflow as a 5th column (only if exists)
+          if (overflow.length > 0) {
+            columns.push(overflow)
+          }
+
+          return (
+            <div key={i} className="flex flex-col items-center gap-1">
+              {/* Month Grid */}
+              <div className="flex gap-[2px]">
+                {columns.map((col, colIndex) => (
+                  <div key={colIndex} className="flex flex-col gap-[2px]">
+                    {col.map((date) => {
+                      const dateKey = format(date, "yyyy-MM-dd")
+                      const count = data[dateKey] || 0
+                      return (
+                        <div
+                          key={dateKey}
+                          className={`w-4 h-4 border ${getColor(count)}`}
+                          title={`${dateKey}: ${count} submissions`}
+                        />
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Month label */}
+              <div className="text-xs text-purple-400 mt-1">{month.label}</div>
             </div>
-          ))}
-        </div>
-        <div className="flex gap-[4px] mt-5">
-          {columns.map((week, i) => (
-            <div key={i} className="flex flex-col gap-[4px]">
-              {week.map((day) => {
-                const dateKey = format(day, "yyyy-MM-dd")
-                const count = data[dateKey] || 0
-                return (
-                  <div
-                    key={dateKey}
-                    className={`w-4 h-4 border ${getColor(count)} rounded-none`}
-                    title={`${dateKey}: ${count} submissions`}
-                  ></div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </div>
   )
 }
+
