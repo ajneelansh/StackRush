@@ -1,7 +1,6 @@
 package Models
 
 import (
-    "time"
     "gorm.io/datatypes"
 )
 
@@ -13,13 +12,13 @@ type User struct {
 	Email            string    `json:"email_id"`
 	Name             string    `json:"name"`
 	ProfilePicture   string    `json:"profile_picture"`
-	ActivityDates []time.Time `gorm:"type:timestamp[]" json:"activity_dates"`
 }
 
 type UserStats struct {
 	UserId            int    `gorm:"primaryKey"`  
 	TotalSolved       int    `json:"total_solved" gorm:"default:0"`
 	SolvedByRating   datatypes.JSON   `gorm:"type:json"`
+	ActivityLog       datatypes.JSON   `gorm:"type:json"`
 }
 
 type UserQuestionStatus struct {
@@ -30,4 +29,6 @@ type UserQuestionStatus struct {
 	User     User     `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
     Question Questions`gorm:"foreignKey:QuestionId;constraint:OnDelete:CASCADE"`
 }
+
+
 
