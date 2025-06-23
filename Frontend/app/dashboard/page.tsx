@@ -68,7 +68,7 @@ export default function Dashboard() {
   const [progressData, setProgressData] = useState<ProgressData>({
     total_solved: 0,
     solved_by_rating: {}
-  });
+  }); 
   const [selectedRating, setSelectedRating] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
@@ -105,7 +105,7 @@ export default function Dashboard() {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await axios.get("http://codehurdle.com/getquestions", {
+      const res = await axios.get("https://codehurdle.com/getquestions", {
         withCredentials: true,
         params: { minRating: rating, maxRating: rating, page: pageNumber, limit: 20 },
       });
@@ -133,6 +133,8 @@ export default function Dashboard() {
   //     "2025-06-18": 4,
   //     "2025-06-19": 3,
   //     "2025-06-20": 5,
+  //     "2025-06-21": 0,
+  //     "2025-06-22": 3,
   //   });
   
   //   setProgressData({
@@ -150,12 +152,13 @@ export default function Dashboard() {
     const fetchProgressData = async () => {
     if (!selectedRating) return;
     try {
-      const res = await axios.get("http://codehurdle.com/getprogress", { withCredentials: true });
-      setHeatmapData(res.data?.datewise || {})
+      const res1 = await axios.get("http:///getprogress", { withCredentials: true });
+      const res2 = await axios.get("https://codehurdle.com/getheatmap", { withCredentials: true });
+      setHeatmapData(res2.data || [])
 
       setProgressData({
-        total_solved: res.data?.total_solved || 0,
-        solved_by_rating: res.data?.SolvedByRating || {},
+        total_solved: res1.data?.total_solved || 0,
+        solved_by_rating: res1.data?.SolvedByRating || {},
       });
     } catch (error) {
       console.error("Failed to fetch progress data:", error);
@@ -187,12 +190,42 @@ export default function Dashboard() {
   const handleStatusUpdate = async (questionId: number, newStatus: "Solved" | "Attempted" | "Unsolved", rating: Question["rating"]) => {
     try {
       setQuestions(prev => prev.map(q => q.question_id === questionId ? { ...q, status: newStatus } : q));
-      await axios.post("http://codehurdle.com/updatequestionstatus", { question_id: questionId, status: newStatus, rating }, { withCredentials: true });
+      await axios.post("https://codehurdle.com/updatequestionstatus", { question_id: questionId, status: newStatus, rating }, { withCredentials: true });
     } catch (err) {
       console.error("Failed to update status", err);
     }
     fetchProgressData();
   };
+
+  const incrementHeatmap = async () =>{
+    const today = new Date();
+    const dateKey = today.toISOString().split('T')[0]; 
+    setHeatmapData(prev => ({
+      ...prev,
+      [dateKey]: (prev[dateKey] || 0) + 1
+    }));
+    
+    try {
+      await axios.post("https://codehurdle.com/incrementheatmap", { withCredentials: true });
+    } catch (error) {
+      console.error("Failed to update heatmap data:", error);
+    }
+  }
+
+  const decrementHeatmap = async () =>{
+    const today = new Date();
+    const dateKey = today.toISOString().split('T')[0]; 
+    setHeatmapData(prev => ({
+      ...prev,
+      [dateKey]: (prev[dateKey] || 0) + 1
+    }));
+    
+    try {
+      await axios.post("https://codehurdle.com/decrementheatmap",{ withCredentials: true });
+    } catch (error) {
+      console.error("Failed to update heatmap data:", error);
+    }
+  }
 
   return (
     <div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
@@ -310,7 +343,7 @@ export default function Dashboard() {
               <h2 className="text-white font-semibold text-sm mb-2">
                 {Object.values(heatmapData).reduce((sum, count) => sum + count, 0)} submissions in the past year
               </h2>
-              <Heatmap data={heatmapData} />
+              <Heatmap data={heatmapData}/>
             </div>
           )}
 
@@ -436,7 +469,10 @@ export default function Dashboard() {
                             <DropdownMenuContent className="bg-gray-950 border-purple-800/30 w-48">
                               <DropdownMenuItem 
                                 className="hover:bg-purple-900/50"
-                                onClick={() => handleStatusUpdate(question.question_id, "Solved", question.rating)}
+                                onClick={() => {
+                                  handleStatusUpdate(question.question_id, "Solved", question.rating);
+                                  incrementHeatmap();
+                                }}
                               >
                                 Mark as Solved
                               </DropdownMenuItem>
@@ -448,7 +484,10 @@ export default function Dashboard() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="hover:bg-purple-900/50"
-                                onClick={() => handleStatusUpdate(question.question_id, "Unsolved", question.rating)}
+                                 onClick={() => {
+                                  handleStatusUpdate(question.question_id, "Solved", question.rating);
+                                  decrementHeatmap();
+                                }}
                               >
                                 Mark as Unsolved
                               </DropdownMenuItem>
