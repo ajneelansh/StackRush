@@ -15,5 +15,6 @@ func UserRoute(incomingRoutes *gin.Engine){
 	incomingRoutes.POST("/incrementheatmap", Controllers.IncrementHeatmapData())
 	incomingRoutes.POST("decrementheatmap", Controllers.UpdateQuestionStatus())
 	incomingRoutes.GET("/getheatmap", Controllers.UpdateQuestionStatus())
+	incomingRoutes.GET("/getuser", Controllers.GetUserInfo())
 	
 }

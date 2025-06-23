@@ -127,3 +127,25 @@ func getStringValue(value interface{}) string {
     }
     return ""
 }
+
+func GetUserInfo() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
+
+		var user Models.User
+		if err := Database.DB.First(&user, userID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"name":           user.Name,
+			"email":          user.Email,
+			"profile_picture": user.ProfilePicture,
+		})
+	}
+}
