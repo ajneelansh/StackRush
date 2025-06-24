@@ -3,6 +3,7 @@ import {DM_Sans} from "next/font/google";
 import clsx from "clsx";
 import "./globals.css";
 
+
 const dmSans= DM_Sans({
   variable: "--font-DM_Sans",
   subsets: ["latin"],
@@ -23,7 +24,7 @@ export default function RootLayout({
       <body
         className={clsx(dmSans.className, "antialiased")}
       >
-        {children}
+       {children}
       </body>
     </html>
   );

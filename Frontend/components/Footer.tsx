@@ -56,7 +56,7 @@ export const Footer = () => {
 
             <div className="pt-2">
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
-                <span className="text-xs font-medium text-cyan-300">Join our community of 10,000+ developers</span>
+                <span className="text-sm font-medium text-cyan-300">Join our community of developers</span>
               </div>
             </div>
           </div>
