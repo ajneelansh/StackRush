@@ -1,7 +1,7 @@
 
 
 "use client"
-
+import { useState } from "react"
 import { MoreVertical, BookOpen, Activity } from "lucide-react"
 import {
   DropdownMenu,
@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import logoImage from "../assets/logo-nav.png"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import Link from "next/link";
+
 
 
 interface SideBarProps {
@@ -24,6 +26,7 @@ interface SideBarProps {
 export const SideBar = ({ userId, showProgress, setShowProgress }: SideBarProps) => {
 
   const router = useRouter()
+  const [user, setUser] = useState<{ name: string; email: string; profilePicture: string } | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -81,11 +84,25 @@ export const SideBar = ({ userId, showProgress, setShowProgress }: SideBarProps)
         <div className="p-4 border-t border-purple-800/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
-                  {userId?.charAt(0).toUpperCase() || "U"}
-                </span>
-              </div>
+              {user?.profilePicture ? (
+                <Link href="/profile">
+                  <Image
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="h-9 w-9 rounded-full border border-purple-500 hover:scale-105 transition-transform object-cover cursor-pointer"
+                  />
+                </Link>
+
+              ) : (
+                <Link href="/profile">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center border border-purple-500 hover:scale-105 transition-transform cursor-pointer">
+                    <span className="text-white font-medium text-sm">
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  </div>
+                </Link>
+
+              )}
               <div className="text-white max-w-[120px] truncate">
                 <p className="text-sm font-medium truncate">
                   {userId || "Username"}
@@ -103,15 +120,15 @@ export const SideBar = ({ userId, showProgress, setShowProgress }: SideBarProps)
                 align="end"
                 className="min-w-[180px] mt-2 rounded-lg p-1 shadow-xl bg-gradient-to-b from-gray-900/90 to-purple-950/90 border border-purple-800/40 backdrop-blur-md"
               >
-                <DropdownMenuItem className="text-sm text-purple-100 hover:bg-purple-800/30 cursor-pointer">
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-sm text-purple-100 hover:bg-purple-800/30 cursor-pointer">
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-sm text-red-400 hover:bg-red-800/30 cursor-pointer
-                onClick={handleLogout}
-                ">
+              <DropdownMenuItem
+                className="text-sm text-purple-100 hover:bg-purple-800/30 cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                Profile
+              </DropdownMenuItem>
+
+                <DropdownMenuItem className="text-sm text-red-400 hover:bg-red-800/30 cursor-pointer"
+                onClick={handleLogout}>
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
