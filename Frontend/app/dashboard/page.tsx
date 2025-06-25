@@ -31,6 +31,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SideBar } from "@/components/SideBar"
 import { Heatmap } from "@/components/Heatmap"
 import { UserCoins } from "@/components/ui/UserCoins"
+import Image from "next/image";
+
+
 
 const RATINGS = [1200, 1350 , 1500, 1650 , 1800, 1950]
 const ratingOptions = [{ value: "all", label: "All Ratings" }, ...RATINGS.map(r => ({ value: String(r), label: String(r) }))]
@@ -215,7 +218,7 @@ export default function Dashboard() {
       <header className="sticky top-0 z-10 flex min-h-22 items-center gap-2 md:gap-4 border-b border-purple-900/50 backdrop-blur-sm px-4 md:px-6">
 
       <div className="w-full flex items-center gap-2 md:gap-4 justify-between">
-      {/* Left: Search and filter */}
+      
       <div className="flex flex-1 gap-2 pl-10">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
@@ -249,7 +252,6 @@ export default function Dashboard() {
         </DropdownMenu>
       </div>
 
-      {/* Right: Profile Icon */}
       <div className="flex items-center gap-2 pr-2">
       <Link href="/rewardsstore" className="text-purple-400 hover:text-white transition-transform hover:scale-105">
         <Gift className="h-6 w-6" />
@@ -257,17 +259,23 @@ export default function Dashboard() {
 
       <UserCoins/>
       {user?.profilePicture ? (
-        <img 
-          src={user.profilePicture} 
-          alt="Profile"
-          className="h-9 w-9 rounded-full border border-purple-500 hover:scale-105 transition-transform object-cover"
-        />
+        <Link href="/profile">
+          <Image
+            src={user.profilePicture}
+            alt="Profile"
+            className="h-9 w-9 rounded-full border border-purple-500 hover:scale-105 transition-transform object-cover cursor-pointer"
+          />
+        </Link>
+
       ) : (
-        <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center border border-purple-500 hover:scale-105 transition-transform">
-          <span className="text-white font-medium text-sm">
-            {user?.name?.charAt(0).toUpperCase() || "U"}
-          </span>
-        </div>
+        <Link href="/profile">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center border border-purple-500 hover:scale-105 transition-transform cursor-pointer">
+            <span className="text-white font-medium text-sm">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </span>
+          </div>
+        </Link>
+
       )}
       </div>
       </div>
@@ -464,12 +472,12 @@ export default function Dashboard() {
 
             {filteredQuestions.length === 0 && !loading && (
               <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="text-xl text-purple-300 mb-2">No problems found</div>
-                <p className="text-sm text-purple-400 max-w-md">
+                <div className="text-xl text-purple-300 mb-2">Problems will be added soon, Stay Tuned!</div>
+                {/* <p className="text-sm text-purple-400 max-w-md">
                   {selectedRating === "all" 
                     ? "Try selecting a specific difficulty rating" 
                     : "No problems available for this rating level"}
-                </p>
+                </p> */}
               </div>
             )}
 

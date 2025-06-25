@@ -11,12 +11,12 @@ interface UserState {
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      coins: 0, // initial coins
+      coins: 0, 
       addCoins: (amount) => set((state) => ({ coins: state.coins + amount })),
       deductCoins: (amount) => set((state) => ({ coins: state.coins - amount })),
     }),
     {
-      name: "user-store", // localStorage key
+      name: "user-store", 
     }
   )
 )

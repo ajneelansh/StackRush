@@ -14,9 +14,7 @@ export default function Home() {
     <section id="features">
     <Features/>
     </section>
-    <section id="about">
-    <MentorsHero/>
-    </section>
+    <ProductShowcase/>
     <FAQs/>
     <Footer/>
     </>
