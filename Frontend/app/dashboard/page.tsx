@@ -243,7 +243,6 @@ const handleProfileSubmit = async (data: { name: string; college: string; batch:
       console.error("Failed to update heatmap data:", error);
     }
   }
-
   return (
     <><div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
       <div className="md:hidden flex-shrink-0 mr-2"></div>
