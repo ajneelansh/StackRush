@@ -12,5 +12,9 @@ func UserRoute(incomingRoutes *gin.Engine){
 	incomingRoutes.GET("/getquestions",Controllers.GetQuestions())
 	incomingRoutes.GET("/getquestions:question_id",Controllers.GetQuestionById())
 	incomingRoutes.GET("/getprogress",Controllers.GetProgressData())
-	incomingRoutes.POST("/updatequestionstatus", Controllers.UpdateQuestionStatus())
+	incomingRoutes.POST("/incrementheatmap", Controllers.IncrementHeatmapData())
+	incomingRoutes.POST("decrementheatmap", Controllers.UpdateQuestionStatus())
+	incomingRoutes.GET("/getheatmap", Controllers.UpdateQuestionStatus())
+	incomingRoutes.GET("/getuser", Controllers.GetUserInfo())
+	
 }
