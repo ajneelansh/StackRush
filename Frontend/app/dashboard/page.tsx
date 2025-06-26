@@ -107,29 +107,6 @@ export default function Dashboard() {
 
   useEffect(() => { fetchQuestions(selectedRating, page); }, [selectedRating, page]);
 
-  // const fetchProgressData = async () => {
-  //   setHeatmapData({
-  //     "2025-06-15": 1,
-  //     "2025-06-16": 3,
-  //     "2025-06-17": 10,
-  //     "2025-06-18": 4,
-  //     "2025-06-19": 3,
-  //     "2025-06-20": 5,
-  //     "2025-06-21": 0,
-  //     "2025-06-22": 3,
-  //   });
-  
-  //   setProgressData({
-  //     total_solved: 11,
-  //     solved_by_rating: {
-  //       "1350": 60,
-  //       "1500": 20,
-  //       "1650": 12,
-  //       "1800": 2,
-  //       "1950": 40,
-  //     },
-  //   });
-  // };
 
     const fetchProgressData = async () => {
     if (!selectedRating) return;
@@ -179,26 +156,20 @@ export default function Dashboard() {
     fetchProgressData();
   };
 
-//---- When the user will signin this logic----//
-//   useEffect(() => {
-//   const fetchUser = async () => {
-//     try {
-//       const res = await axios.get("http://codehurdle.com/getuser", { withCredentials: true });
-//       setUser(res.data);
-//       if (!res.data.name || !res.data.college || !res.data.batch) {
-//         setShowPopup(true);
-//       }
-//     } catch (err) {
-//       console.error("Error fetching user:", err);
-//     }
-//   };
-//   fetchUser();
-// }, []);
 
-
-//----For testing----//
 useEffect(() => {
-  setShowPopup(true); // force popup to show
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get("http://codehurdle.com/getuser", { withCredentials: true });
+      setUser(res.data);
+      if (!res.data.name || !res.data.college || !res.data.batch) {
+        setShowPopup(true);
+      }
+    } catch (err) {
+      console.error("Error fetching user:", err);
+    }
+  };
+  fetchUser();
 }, []);
 
 
