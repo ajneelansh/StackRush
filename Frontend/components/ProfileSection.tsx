@@ -14,10 +14,11 @@ export default function ProfileSection() {
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string>("")
   const [formData, setFormData] = useState({
-    name: "Aditi Agrawal",
-    email: "agrawaladiti125@gmail.com",
-    location: "India, Uttar Pradesh, Hathras",
-    college: "Indian Institute of Technology",
+    name: "abc",
+    email: "abc@gmail.com",
+    location: "India, Uttar Pradesh",
+    college: "xyz",
+    yearOfStudy: "Other",
     profilePicture: "",
   })
   const [editData, setEditData] = useState({ ...formData })
@@ -96,11 +97,6 @@ export default function ProfileSection() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
               <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-purple-300">
-                    Profile Picture
-                  </CardTitle>
-                </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-purple-500">
@@ -118,10 +114,7 @@ export default function ProfileSection() {
                       )}
                     </div>
                     <label className="cursor-pointer">
-                      <Button 
-                        variant="outline" 
-                        className="bg-purple-900/50 border-purple-700 hover:bg-purple-800 text-sm"
-                      >
+                      <div className="bg-purple-900/50 border border-purple-700 hover:bg-purple-800 text-sm px-4 py-2 rounded-md text-white text-center w-fit">
                         Change Photo
                         <input 
                           type="file" 
@@ -129,8 +122,9 @@ export default function ProfileSection() {
                           onChange={handleImageChange}
                           className="hidden"
                         />
-                      </Button>
+                      </div>
                     </label>
+
                   </div>
 
                   <div className="mt-8 space-y-4">
@@ -150,6 +144,11 @@ export default function ProfileSection() {
                       <h3 className="text-sm text-purple-300 mb-1">College</h3>
                       <p className="text-white">{formData.college}</p>
                     </div>
+                    <div>
+                      <h3 className="text-sm text-purple-300 mb-1">Year of Study</h3>
+                      <p className="text-white">{formData.yearOfStudy}</p>
+                    </div>
+
                     <Button 
                       onClick={() => {
                         setEditData(formData)
@@ -224,6 +223,23 @@ export default function ProfileSection() {
                             className="bg-gray-900/50 border-purple-800/50 text-white"
                           />
                         </div>
+
+                        <div>
+                          <label className="block text-sm text-purple-300 mb-1">Year of Study</label>
+                          <select
+                            name="year"
+                            value={editData.yearOfStudy}
+                            onChange={(e) => setEditData(prev => ({ ...prev, year: e.target.value }))}
+                            className="bg-gray-900/50 border-purple-800/50 text-white rounded-md px-3 py-2 w-full"
+                          >
+                            <option className="bg-gray-900">1st Year</option>
+                            <option className="bg-gray-900">2nd Year</option>
+                            <option className="bg-gray-900">3rd Year</option>
+                            <option className="bg-gray-900">4th Year</option>
+                            <option className="bg-gray-900">Other</option>
+                          </select>
+                        </div>
+
                       </div>
 
                       <div className="pt-4 flex gap-2">
@@ -248,20 +264,20 @@ export default function ProfileSection() {
               ) : (
                 <>
                   <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold text-purple-300">
+                    {/* <CardHeader>
+                      <CardTitle className="text-xs font-semibold text-purple-300">
                         Activity Overview
                       </CardTitle>
-                    </CardHeader>
+                    </CardHeader> */}
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center border border-purple-800 rounded-lg p-4">
-                          <p className="text-xl font-bold text-cyan-400">0</p>
-                          <p className="text-sm text-purple-300">Contests Attended</p>
+                        <div className="text-center border border-purple-800 rounded-lg p-8">
+                          <p className="text-3xl font-bold text-cyan-400">0</p>
+                          <p className="text-md text-purple-300">Contests Attended</p>
                         </div>
-                        <div className="text-center border border-purple-800 rounded-lg p-4">
-                          <p className="text-xl font-bold text-cyan-400">0</p>
-                          <p className="text-sm text-purple-300">Problems Solved</p>
+                        <div className="text-center border border-purple-800 rounded-lg p-8">
+                          <p className="text-3xl font-bold text-cyan-400">0</p>
+                          <p className="text-md text-purple-300">Problems Solved</p>
                         </div>
                       </div>
                     </CardContent>

@@ -217,9 +217,9 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-auto max-w-[1600px] mx-auto w-full">
       <header className="sticky top-0 z-10 flex min-h-22 items-center gap-2 md:gap-4 border-b border-purple-900/50 backdrop-blur-sm px-4 md:px-6">
 
-      <div className="w-full flex items-center gap-2 md:gap-4 justify-between">
+      <div className="w-full flex items-center gap-2 md:gap-4 justify-end">
       
-      <div className="flex flex-1 gap-2 pl-10">
+      {/* <div className="flex flex-1 gap-2 pl-10">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
           <Input 
@@ -250,7 +250,7 @@ export default function Dashboard() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
 
       <div className="flex items-center gap-2 pr-2">
       <Link href="/rewardsstore" className="text-purple-400 hover:text-white transition-transform hover:scale-105">
