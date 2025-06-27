@@ -4,7 +4,6 @@ import (
 	"Backend/Database"
 	"Backend/Models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -59,10 +58,6 @@ func IncrementHeatmapData() gin.HandlerFunc {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-		fmt.Println("📅 Incoming date:", body.Date)
-fmt.Println("👤 User ID:", uid)
-fmt.Println("📊 Old activity_log:", string(stats.ActivityLog))
 
 		c.Status(http.StatusOK)
 	}

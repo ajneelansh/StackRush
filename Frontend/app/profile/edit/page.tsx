@@ -8,27 +8,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Save, X } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useUserStore } from "@/lib/stores/useUserStore";
+import axios from "axios";
 
 export default function EditProfilePage() {
   const router = useRouter();
   const { profile, setProfile } = useUserStore();
 
-  const [editData, setEditData] = useState(profile);
+  const [editData, setEditData] = useState({
+    name: "",
+    email: "",
+    profilePicture: "",
+    location: "",
+    college: "",
+    batch: "2026"
+  });
 
-  useEffect(() => {
-    setEditData(profile); // load latest state when page mounts
-  }, [profile]);
+   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/getuser", { withCredentials: true });
+        setEditData(res.data || {});
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile(editData); // ✅ update Zustand
-    alert("Profile updated!");
-    router.push("/profile");
+    try {
+      await axios.post(
+        "http://localhost:8080/updateprofile",
+        {
+          name: editData.name,
+          college: editData.college,
+          batch: editData.batch,
+          location: editData.location,
+        },
+        { withCredentials: true }
+      );
+      setProfile(editData);
+      router.push("/profile");
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      alert("Something went wrong.");
+    }
   };
 
   return (

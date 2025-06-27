@@ -18,7 +18,7 @@ export const NavBar = () => {
   }, [])
 
   const handleSignIn = () => {
-    window.location.href = "http://codehurdle.com/auth/google"
+    window.location.href = "http://localhost:8080/auth/google"
   }
 
   const handleSignOut = () => {

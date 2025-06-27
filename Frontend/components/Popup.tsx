@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import axios from "axios";
 
 type PopupProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: { name: string; college: string; batch: string }) => void;
-  user: { name: string; email: string; profilePicture: string } | null;
+  user: { name: string, email: string, profilePicture: string, batch?: string, college?:string } | null;
 };
 
 export const Popup = ({ open, onClose, onSubmit, user }: PopupProps) => {
@@ -18,7 +19,7 @@ export const Popup = ({ open, onClose, onSubmit, user }: PopupProps) => {
     college: user?.college || "",
     batch: user?.batch || "2026",
   });
-
+  const [error, setError] = useState("");
   useEffect(() => {
     if (user) {
       setFormData({
@@ -34,10 +35,28 @@ export const Popup = ({ open, onClose, onSubmit, user }: PopupProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    onSubmit(formData);
-    onClose()
-  };
+  const handleSubmit = async () => {
+  const { name, college, batch } = formData;
+
+  if (!name.trim() || !college.trim()) {
+    setError("Name and College cannot be empty.");
+    return;
+  }
+
+  setError("");
+
+  try {
+    await axios.post(
+      "http://localhost:8080/updateprofile",
+      { name, college, batch },
+      { withCredentials: true }
+    );
+    onClose(); 
+  } catch (error) {
+    console.error("Failed to update profile:", error);
+    setError("Failed to update profile. Try again.");
+  }
+};
 
   return (
     <AnimatePresence>
