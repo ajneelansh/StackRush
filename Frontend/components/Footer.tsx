@@ -144,7 +144,13 @@ export const Footer = () => {
                 <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-cyan-400/30">
                   <Mail className="h-4 w-4 text-cyan-400 group-hover:text-cyan-300" />
                 </div>
-                <span className="text-sm">contact@codehurdle.com</span>
+                <a
+                  href="mailto:mahesh@codehurdle.com"
+                  className="text-sm  transition-all duration-200"
+                >
+                  mahesh@codehurdle.com
+                </a>
+
               </li>
             </ul>
           </div>
