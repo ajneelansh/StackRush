@@ -22,7 +22,7 @@ export const ProductShowcase = () => {
         window.location.href = 'http://codehurdle.com/auth/google';
     }
     return (
-        <div className="min-h-screen bg-gray-950 text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className=" bg-gray-950 text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-20 -left-20 w-80 h-80 bg-cyan-900/20 rounded-full filter blur-3xl opacity-20"></div>

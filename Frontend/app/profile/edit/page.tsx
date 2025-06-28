@@ -35,14 +35,26 @@ export default function EditProfilePage() {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    setEditData(profile);
+  }, [profile]);
+=======
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setProfile(editData);
+    alert("Profile updated!");
+    router.push("/profile");
+
     try {
       await axios.post(
         "http://localhost:8080/updateprofile",
@@ -60,6 +72,7 @@ export default function EditProfilePage() {
       console.error("Failed to update profile:", error);
       alert("Something went wrong.");
     }
+
   };
 
   return (
@@ -131,12 +144,25 @@ export default function EditProfilePage() {
                       onChange={handleChange}
                       className="bg-gray-900/50 border-purple-800/50 text-white rounded-md px-3 py-2 w-full"
                     >
-                      <option value="2025" className="bg-gray-900 text-white">2025</option>
-                      <option value="2026" className="bg-gray-900 text-white">2026</option>
-                      <option value="2027" className="bg-gray-900 text-white">2027</option>
-                      <option value="2028" className="bg-gray-900 text-white">2028</option>
+                      <option value="2026">2026</option>
+                      <option value="2027">2027</option>
+                      <option value="2028">2028</option>
+                      <option value="2029">2029</option>
                     </select>
                   </div>
+                </div>
+
+                {/* BIO SECTION */}
+                <div>
+                  <label className="block text-sm text-purple-300 mb-1">Bio</label>
+                  <textarea
+                    name="bio"
+                    value={editData.bio || ""}
+                    onChange={handleChange}
+                    rows={4}
+                    placeholder="Tell us about yourself(interests, experiences)..."
+                    className="w-full rounded-md bg-gray-900/50 border border-purple-800/50 text-white px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+                  />
                 </div>
 
                 <div className="pt-4 flex gap-2">

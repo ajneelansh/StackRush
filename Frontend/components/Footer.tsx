@@ -1,11 +1,11 @@
 "use client"
 import logoImage from "../assets/logo-nav.png";
 import Image from "next/image";
-import { Mail, Phone, Github, Linkedin, Twitter, BookOpen, Award } from "lucide-react"
+import { Mail, Phone, Instagram, Linkedin, Twitter, BookOpen, Award } from "lucide-react"
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-950 text-white py-10 px-4 sm:px-6 relative overflow-hidden">
+    <footer className="bg-gray-950 text-white py-20  px-4 sm:px-6 relative overflow-hidden">
      
       <div className="absolute inset-0 z-0">
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-900 to-transparent"></div>
@@ -29,19 +29,34 @@ export const Footer = () => {
 
           <div className="flex space-x-3 sm:space-x-4">
             {[
-              { icon: <Github className="h-5 w-5" />, label: "GitHub" },
-              { icon: <Linkedin className="h-5 w-5" />, label: "LinkedIn" },
-              { icon: <Twitter className="h-5 w-5" />, label: "Twitter" }
+              {
+                icon: <Instagram className="h-5 w-5" />,
+                label: "Instagram",
+                link: "https://instagram.com/codehurdle.official"
+              },
+              {
+                icon: <Linkedin className="h-5 w-5" />,
+                label: "LinkedIn",
+                link: "https://www.linkedin.com/company/106694691/admin/dashboard/"
+              },
+              {
+                icon: <Twitter className="h-5 w-5" />,
+                label: "Twitter",
+                link: "https://x.com/codehurdle"
+              }
             ].map((social) => (
               <a
                 key={social.label}
-                href="#"
+                href={social.link}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-gray-900/50 p-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 hover:scale-110 border border-gray-800 hover:border-cyan-400/30"
               >
                 <span className="text-cyan-300">{social.icon}</span>
                 <span className="sr-only">{social.label}</span>
               </a>
-            ))}
+            ))
+            }
           </div>
         </div>
 
@@ -129,7 +144,13 @@ export const Footer = () => {
                 <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-cyan-400/30">
                   <Mail className="h-4 w-4 text-cyan-400 group-hover:text-cyan-300" />
                 </div>
-                <span className="text-sm">contact@codehurdle.com</span>
+                <a
+                  href="mailto:mahesh@codehurdle.com"
+                  className="text-sm  transition-all duration-200"
+                >
+                  mahesh@codehurdle.com
+                </a>
+
               </li>
             </ul>
           </div>

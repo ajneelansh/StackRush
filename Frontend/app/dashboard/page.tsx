@@ -126,7 +126,7 @@ export default function Dashboard() {
   useEffect(() => { fetchProgressData(); }, [selectedRating]);
 
   const handleRatingSelect = (rating: string) => {
-    setSelectedRating(prev => (prev === rating ? "all" : rating));
+    setSelectedRating(prev => (prev === rating ? "1350" : rating));
     setQuestions([]);
     setPage(1);
   };

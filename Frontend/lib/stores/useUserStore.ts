@@ -8,7 +8,9 @@ interface ProfileData {
   college: string;
   batch: string;
   profilePicture?: string;
+  bio?: string; 
 }
+
 
 interface UserState {
   coins: number;
@@ -29,7 +31,9 @@ export const useUserStore = create<UserState>()(
         college: "",
         batch: "2026",
         profilePicture: "",
+        bio: ""
       },
+      
       addCoins: (amount) =>
         set((state) => ({ coins: state.coins + amount })),
       deductCoins: (amount) =>

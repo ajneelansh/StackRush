@@ -59,16 +59,11 @@ const AccordianItem = ({ question, answer }: { question: string, answer: string 
 
 export const FAQs = () => {
     return (
-        <div className="min-h-screen bg-gray-950 text-white py-20 relative overflow-hidden">
-            {/* Matching background elements */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-                <div className="absolute top-1/4 -right-20 w-96 h-96 bg-purple-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-pulse"></div>
-                <div className="absolute bottom-1/3 -left-20 w-96 h-96 bg-cyan-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-pulse delay-300"></div>
-            </div>
+        <div className=" bg-gray-950 text-white py-20 relative overflow-hidden">
             
             <div className="container mx-auto relative z-10 px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-[linear-gradient(90deg,#FFF,#B5FFFD)] [-webkit-background-clip:text]">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
                         Frequently Asked Questions
                     </h2>
                     <p className="mt-6 text-lg sm:text-xl max-w-3xl mx-auto text-gray-300">
