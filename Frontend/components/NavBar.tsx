@@ -28,10 +28,10 @@ export const NavBar = () => {
   }
 
   return (
-    <div className="bg-gray-950 border-b border-gray-800 backdrop-blur-sm bg-opacity-80">
+    <div className="sticky top-0 z-50 min-h-20 bg-gray-950 border-b border-gray-800 backdrop-blur-sm bg-opacity-80">
       <div className="max-w-screen-xl mx-auto w-full px-4">
         <div className="py-4 flex items-center justify-between">
-          {/* Logo - Left */}
+    
           <div className="relative">
             <Image
               src={logoImage}
@@ -42,7 +42,7 @@ export const NavBar = () => {
             />
           </div>
 
-          {/* Desktop Navigation + Auth Button - Right */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <nav className="flex gap-6 items-center">
               <a href="#about" className="text-gray-300 hover:text-cyan-300 transition-all font-medium group">
