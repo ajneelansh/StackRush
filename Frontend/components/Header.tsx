@@ -3,7 +3,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Gift } from "lucide-react";
@@ -42,6 +42,33 @@ export const Header = () => {
       router.push("/");
     }
   };
+
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/getuser", {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser({
+            name: data.name,
+            email: data.email,
+            profilePicture: data.profile_picture || "",
+          });
+        } else {
+          console.warn("Failed to fetch user info");
+        }
+      } catch (err) {
+        console.error("Error fetching user info", err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 sm:gap-6 min-h-20 border-b border-purple-900/50 backdrop-blur-sm px-4 md:px-6 bg-black/80">

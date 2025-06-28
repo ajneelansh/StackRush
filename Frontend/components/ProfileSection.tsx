@@ -135,7 +135,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -144,26 +144,56 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Edit } from "lucide-react";
 import { Heatmap } from "@/components/Heatmap";
 import { Header } from "@/components/Header";
-import { useUserStore } from "@/lib/stores/useUserStore"; // adjust path if needed
+import { useUserStore } from "@/lib/stores/useUserStore"; 
+import axios from "axios";
 
 export default function ProfileSection() {
   const router = useRouter();
   const profile = useUserStore((state) => state.profile);
 
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>("");
+  const [user, setUser] = useState<{ name?: string; email?: string; profilePicture?: string; college?:string; location?:string; batch?:string} | null>(null);
+  const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
 
-  const [heatmapData] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const fetchHeatmapData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/getheatmap", { withCredentials: true });
+        setHeatmapData(response.data?.data || {});
+      } catch (error) {
+        console.error("Failed to fetch heatmap data:", error);
+      }
+    };
+    fetchHeatmapData();
+  }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.size < 1024 * 1024 && file.type.startsWith("image/")) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    } else {
-      alert("Please upload a valid image (PNG/JPG, max 1MB).");
-    }
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/getuser", {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser({
+            name: data.name,
+            email: data.email,
+            profilePicture: data.profile_picture || "",
+            college: data.college,
+            location: data.location,
+            batch:data.batch
+          });
+        } else {
+          console.warn("Failed to fetch user info");
+        }
+      } catch (err) {
+        console.error("Error fetching user info", err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
 
   return (
     <div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
@@ -176,25 +206,19 @@ export default function ProfileSection() {
                 <CardContent>
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-purple-500">
+
                       {preview ? (
                         <Image src={preview} alt="Profile Preview" fill unoptimized priority className="object-cover" />
+
+                      {user?.profilePicture ? (
+                      <Image src={user.profilePicture} alt="Profile Picture" fill className="object-cover" />
+
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-purple-900/30 to-cyan-900/30 flex items-center justify-center">
-                          <span className="text-4xl">👤</span>
-                        </div>
+                      <div className="w-full h-full bg-gradient-to-br from-purple-900/30 to-cyan-900/30 flex items-center justify-center">
+                        <span className="text-4xl">👤</span>
+                      </div>
                       )}
                     </div>
-                    <label className="cursor-pointer">
-                      <div className="bg-purple-900/50 border border-purple-700 hover:bg-purple-800 text-sm px-4 py-2 rounded-md text-white text-center w-fit">
-                        Change Photo
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </div>
-                    </label>
                   </div>
 
                   <div className="mt-6 text-center">
@@ -206,23 +230,23 @@ export default function ProfileSection() {
                   <div className="mt-8 space-y-4">
                     <div>
                       <h3 className="text-sm text-purple-300 mb-1">Name</h3>
-                      <p className="text-white">{profile.name}</p>
+                      <p className="text-white">{user?.name || "N/A"}</p>
                     </div>
                     <div>
                       <h3 className="text-sm text-purple-300 mb-1">Email</h3>
-                      <p className="text-white">{profile.email}</p>
+                      <p className="text-white">{user?.email}</p>
                     </div>
                     <div>
                       <h3 className="text-sm text-purple-300 mb-1">Location</h3>
-                      <p className="text-white">{profile.location}</p>
+                      <p className="text-white">{user?.location}</p>
                     </div>
                     <div>
                       <h3 className="text-sm text-purple-300 mb-1">College</h3>
-                      <p className="text-white">{profile.college}</p>
+                      <p className="text-white">{user?.college}</p>
                     </div>
                     <div>
                       <h3 className="text-sm text-purple-300 mb-1">Passout Batch</h3>
-                      <p className="text-white">{profile.batch}</p>
+                      <p className="text-white">{user?.batch}</p>
                     </div>
 
                     <Button

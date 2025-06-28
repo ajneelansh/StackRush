@@ -33,7 +33,7 @@ import { Header } from "@/components/Header";
 import { Popup } from "@/components/Popup"
 
 
-const RATINGS = [1200, 1350 , 1500, 1650 , 1800, 1950]
+const RATINGS = [1350 , 1500, 1650 , 1800, 1950]
 const ratingOptions = [{ value: "all", label: "All Ratings" }, ...RATINGS.map(r => ({ value: String(r), label: String(r) }))]
 
 type Question = {
@@ -87,7 +87,7 @@ export default function Dashboard() {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await axios.get("https://codehurdle.com/getquestions", {
+      const res = await axios.get("http://localhost:8080/getquestions", {
         withCredentials: true,
         params: { minRating: rating, maxRating: rating, page: pageNumber, limit: 20 },
       });
@@ -107,37 +107,13 @@ export default function Dashboard() {
 
   useEffect(() => { fetchQuestions(selectedRating, page); }, [selectedRating, page]);
 
-  // const fetchProgressData = async () => {
-  //   setHeatmapData({
-  //     "2025-06-15": 1,
-  //     "2025-06-16": 3,
-  //     "2025-06-17": 10,
-  //     "2025-06-18": 4,
-  //     "2025-06-19": 3,
-  //     "2025-06-20": 5,
-  //     "2025-06-21": 0,
-  //     "2025-06-22": 3,
-  //   });
-  
-  //   setProgressData({
-  //     total_solved: 11,
-  //     solved_by_rating: {
-  //       "1350": 60,
-  //       "1500": 20,
-  //       "1650": 12,
-  //       "1800": 2,
-  //       "1950": 40,
-  //     },
-  //   });
-  // };
 
     const fetchProgressData = async () => {
     if (!selectedRating) return;
     try {
-      const res1 = await axios.get("http:///getprogress", { withCredentials: true });
-      const res2 = await axios.get("https://codehurdle.com/getheatmap", { withCredentials: true });
-      setHeatmapData(res2.data || [])
-
+      const res1 = await axios.get("http://localhost:8080/getprogress", { withCredentials: true });
+      const res2 = await axios.get("http://localhost:8080/getheatmap", { withCredentials: true });
+      setHeatmapData(res2.data?.data || {});
       setProgressData({
         total_solved: res1.data?.total_solved || 0,
         solved_by_rating: res1.data?.SolvedByRating || {},
@@ -172,40 +148,34 @@ export default function Dashboard() {
   const handleStatusUpdate = async (questionId: number, newStatus: "Solved" | "Attempted" | "Unsolved", rating: Question["rating"]) => {
     try {
       setQuestions(prev => prev.map(q => q.question_id === questionId ? { ...q, status: newStatus } : q));
-      await axios.post("https://codehurdle.com/updatequestionstatus", { question_id: questionId, status: newStatus, rating }, { withCredentials: true });
+      await axios.post("http://localhost:8080/updatequestionstatus", { question_id: questionId, status: newStatus, rating }, { withCredentials: true });
     } catch (err) {
       console.error("Failed to update status", err);
     }
     fetchProgressData();
   };
 
-//---- When the user will signin this logic----//
-//   useEffect(() => {
-//   const fetchUser = async () => {
-//     try {
-//       const res = await axios.get("http://codehurdle.com/getuser", { withCredentials: true });
-//       setUser(res.data);
-//       if (!res.data.name || !res.data.college || !res.data.batch) {
-//         setShowPopup(true);
-//       }
-//     } catch (err) {
-//       console.error("Error fetching user:", err);
-//     }
-//   };
-//   fetchUser();
-// }, []);
 
-
-//----For testing----//
 useEffect(() => {
-  setShowPopup(true); // force popup to show
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/getuser", { withCredentials: true });
+      setUser(res.data);
+      if (!res.data.name || !res.data.college || !res.data.batch) {
+        setShowPopup(true);
+      }
+    } catch (err) {
+      console.error("Error fetching user:", err);
+    }
+  };
+  fetchUser();
 }, []);
 
 
 
 const handleProfileSubmit = async (data: { name: string; college: string; batch: string }) => {
   try {
-    await axios.post("http://codehurdle.com/updateprofile", data, { withCredentials: true });
+    await axios.post("http://localhost:8080/updateprofile", data, { withCredentials: true });
     setUser(prev => prev ? { ...prev, ...data } : null);
     setShowPopup(false); 
   } catch (error) {
@@ -213,36 +183,39 @@ const handleProfileSubmit = async (data: { name: string; college: string; batch:
   }
 };
 
+const getISODate = (date = new Date()) => date.toISOString().split('T')[0];
 
-  const incrementHeatmap = async () =>{
-    const today = new Date();
-    const dateKey = today.toISOString().split('T')[0]; 
-    setHeatmapData(prev => ({
-      ...prev,
-      [dateKey]: (prev[dateKey] || 0) + 1
-    }));
-    
-    try {
-      await axios.post("https://codehurdle.com/incrementheatmap", { withCredentials: true });
-    } catch (error) {
-      console.error("Failed to update heatmap data:", error);
-    }
-  }
+const incrementHeatmap = async () => {
+  const dateKey = getISODate();
 
-  const decrementHeatmap = async () =>{
-    const today = new Date();
-    const dateKey = today.toISOString().split('T')[0]; 
-    setHeatmapData(prev => ({
-      ...prev,
-      [dateKey]: (prev[dateKey] || 0) + 1
-    }));
-    
-    try {
-      await axios.post("https://codehurdle.com/decrementheatmap",{ withCredentials: true });
-    } catch (error) {
-      console.error("Failed to update heatmap data:", error);
-    }
+
+  setHeatmapData(prev => ({
+    ...prev,
+    [dateKey]: (prev[dateKey] || 0) + 1
+  }));
+
+  try {
+    await axios.post("http://localhost:8080/incrementheatmap", { date: dateKey }, { withCredentials: true });
+  } catch (error) {
+    console.error("Failed to increment heatmap data:", error);
   }
+};
+
+const decrementHeatmap = async () => {
+  const dateKey = getISODate();
+
+  setHeatmapData(prev => ({
+    ...prev,
+    [dateKey]: Math.max((prev[dateKey] || 0) - 1, 0)
+  }));
+
+  try {
+    await axios.post("http://localhost:8080/decrementheatmap", { date: dateKey }, { withCredentials: true });
+  } catch (error) {
+    console.error("Failed to decrement heatmap data:", error);
+  }
+};
+
   return (
     <><div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
       <div className="md:hidden flex-shrink-0 mr-2"></div>
@@ -256,7 +229,7 @@ const handleProfileSubmit = async (data: { name: string; college: string; batch:
       <div className={`fixed md:static z-40 w-64 h-full bg-gradient-to-b from-black to-purple-950/90 border-r border-purple-800/30 transition-all duration-300 ${isSidebarOpen ? 'left-0' : '-left-64'} md:left-0`}>
         <SideBar
           showProgress={showProgress}
-          setShowProgress={setShowProgress} />
+          setShowProgress={setShowProgress}/>
       </div>
 
       <div className="flex-1 flex flex-col overflow-auto max-w-[1600px] mx-auto w-full">
@@ -437,7 +410,7 @@ const handleProfileSubmit = async (data: { name: string; college: string; batch:
                               <DropdownMenuItem
                                 className="hover:bg-purple-900/50"
                                  onClick={() => {
-                                  handleStatusUpdate(question.question_id, "Solved", question.rating);
+                                  handleStatusUpdate(question.question_id, "Unsolved", question.rating);
                                   decrementHeatmap();
                                 }}
                               >

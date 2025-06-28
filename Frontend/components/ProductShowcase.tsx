@@ -35,12 +35,12 @@ export const ProductShowcase = () => {
                         Features We are Working on...
                     </h2>
                     <p className="mt-8 text-lg sm:text-xl max-w-3xl mx-auto text-gray-300 leading-relaxed">
-                        Here's a sneak peek at upcoming features that will supercharge your competetive programming journey.
+                        Heres a sneak peek at upcoming features that will supercharge your competetive programming journey.
                     </p>
                 </div>
 
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {features.map(({ title, description, icon, color }) => (
+                    {features.map(({ title, description, color }) => (
                         <div 
                             key={title}
                             className="group relative bg-gray-900/50 border border-gray-800 rounded-2xl p-10 hover:border-cyan-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 backdrop-blur-sm"

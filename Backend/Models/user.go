@@ -12,6 +12,10 @@ type User struct {
 	Email            string    `json:"email_id"`
 	Name             string    `json:"name"`
 	ProfilePicture   string    `json:"profile_picture"`
+	College 		 string    `json:"college"`
+	Batch			 string    `json:"batch"`
+	Location         string    `json:"location"`
+	
 }
 
 type UserStats struct {

@@ -5,43 +5,11 @@ import (
 	"Backend/Models"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
-
-func DecrementHeatmapData() gin.HandlerFunc{
-	return func(c *gin.Context){
-	userID, exists := c.Get("user_id")
-   if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-			return
-		}
-
-    var stats Models.UserStats
-    if err := Database.DB.First(&stats, userID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-
-    logMap := map[string]int{}
-    if len(stats.ActivityLog) > 0 {
-        _ = json.Unmarshal(stats.ActivityLog, &logMap)
-    }
-
-    today := time.Now().Format("2006-01-02")
-    if logMap[today] > 0 {
-        logMap[today]--
-    }
-
-    newLog, _ := json.Marshal(logMap)
-
-    Database.DB.Model(&stats).Updates(map[string]interface{}{
-        "activity_log":  newLog,
-    })
-
-	}
-}
 
 func IncrementHeatmapData() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -51,74 +19,119 @@ func IncrementHeatmapData() gin.HandlerFunc {
 			return
 		}
 
-		var stats Models.UserStats
-    uid, ok := userID.(int)
-    if !ok {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
-        return
-    }
-    if err := Database.DB.FirstOrCreate(&stats, Models.UserStats{UserId: uid}).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+		var uid int
+		switch v := userID.(type) {
+		case float64:
+			uid = int(v)
+		case int:
+			uid = v
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected user ID type"})
+			return
+		}
 
-	
+		var body struct {
+			Date string `json:"date"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil || body.Date == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Date is required"})
+			return
+		}
 
-   
-    logMap := map[string]int{}
-    if len(stats.ActivityLog) > 0 {
-        _ = json.Unmarshal(stats.ActivityLog, &logMap)
-    }
+	var stats Models.UserStats
+	err := Database.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("user_id = ?", uid).
+			First(&stats).Error; err != nil {
+			return err
+		}
 
-    today := time.Now().Format("2006-01-02")
-	if _, exist := logMap[today]; !exist {
-        logMap[today] = 0
-    }
-    logMap[today]++
+	logMap := map[string]int{}
+	_ = json.Unmarshal(stats.ActivityLog, &logMap)
+	logMap[body.Date]++
 
-    newLog, _ := json.Marshal(logMap)
+	newLog, _ := json.Marshal(logMap)
+	return tx.Model(&stats).Update("activity_log", newLog).Error
+})
 
-    
-    Database.DB.Model(&stats).Updates(map[string]interface{}{
-        "activity_log":  newLog,
-    })
-  }
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+		c.Status(http.StatusOK)
+	}
 }
 
 
-type HeatmapEntry struct {
-    Date  string `json:"date"`
-    Count int    `json:"count"`
-}
 
-func GetHeatmap() gin.HandlerFunc{
-	return func(c *gin.Context){
+func DecrementHeatmapData() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		userID, exists := c.Get("user_id")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
 			return
 		}
-	
-    var stats Models.UserStats
-    if err := Database.DB.First(&stats, userID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
+        var uid int
+		switch v := userID.(type) {
+		case float64:
+			uid = int(v)
+		case int:
+			uid = v
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected user ID type"})
+			return
+		}
 
-    logMap := map[string]int{}
-    if len(stats.ActivityLog) > 0 {
-        _ = json.Unmarshal(stats.ActivityLog, &logMap)
-    }
+		var body struct {
+			Date string `json:"date"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil || body.Date == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Date is required"})
+			return
+		}
 
-    today := time.Now().Truncate(24 * time.Hour)
-    result := make(map[string]int)
+		var stats Models.UserStats
+		if err := Database.DB.First(&stats, uid).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
 
-    for i := 0; i < 365; i++ {
-        date := today.AddDate(0, 0, -i).Format("2006-01-02")
-        result[date] = logMap[date] 
-    }
+		logMap := map[string]int{}
+		if len(stats.ActivityLog) > 0 {
+			_ = json.Unmarshal(stats.ActivityLog, &logMap)
+		}
 
-    c.JSON(http.StatusOK, result)
+		if logMap[body.Date] > 0 {
+			logMap[body.Date]--
+		}
+		newLog, _ := json.Marshal(logMap)
 
-    }
+		Database.DB.Model(&stats).Update("activity_log", newLog)
+		c.Status(http.StatusOK)
+	}
+}
+
+
+func GetHeatmap() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
+
+		var stats Models.UserStats
+		if err := Database.DB.First(&stats, userID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		logMap := map[string]int{}
+		if len(stats.ActivityLog) > 0 {
+			_ = json.Unmarshal(stats.ActivityLog, &logMap)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"data": logMap})
+	}
 }

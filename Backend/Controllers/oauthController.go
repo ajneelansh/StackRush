@@ -98,6 +98,62 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 	}
 }
 
+func UpdateProfile() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
+
+		var uid int
+		switch v := userID.(type) {
+		case float64:
+			uid = int(v)
+		case int:
+			uid = v
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		var body struct {
+			Name    string `json:"name"`
+			College string `json:"college"`
+			Batch   string `json:"batch"`
+			Location string `json:"location"`
+		}
+
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+			return
+		}
+
+		
+		var user Models.User
+		if err := Database.DB.First(&user, uid).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			}
+			return
+		}
+
+		user.Name = body.Name
+		user.College = body.College
+		user.Batch = body.Batch
+		user.Location = body.Location
+
+		if err := Database.DB.Save(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+	}
+}
+
 func fetchGoogleUserInfo(accessToken string) (map[string]interface{}, error) {
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + accessToken)
 	if err != nil {
@@ -146,6 +202,9 @@ func GetUserInfo() gin.HandlerFunc {
 			"name":           user.Name,
 			"email":          user.Email,
 			"profile_picture": user.ProfilePicture,
+			"college":        user.College,
+			"batch":          user.Batch,
+			"location":       user.Location,
 		})
 	}
 }
