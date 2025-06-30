@@ -31,102 +31,17 @@ export default function SheetsPage() {
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
   const [expandedSubtopic, setExpandedSubtopic] = useState<string | null>(null)
 
-  // useEffect(() => {
-  //   const fetchTopics = async () => {
-  //     try {
-  //       const res = await axios.get("https://codehurdle.com/gettopics", { withCredentials: true });
-  //       setTopicsData(res.data || []);
-  //     } catch (err) {
-  //       console.error("Failed to fetch topics:", err);
-  //     }
-  //   };
-  //   fetchTopics();
-  // }, []);
-
   useEffect(() => {
-    const dummyTopics = [
-      {
-        title: "Binary Search",
-        subtopics: [
-          {
-            title: "Introductory Problems",
-            questions: [
-              {
-                question_id: 1,
-                question_title: "Binary Search",
-                status: "Unsolved",
-                link: "https://leetcode.com/problems/binary-search/"
-              },
-              {
-                question_id: 2,
-                question_title: "Guess Number Higher or Lower",
-                status: "Attempted",
-                link: "https://leetcode.com/problems/guess-number-higher-or-lower/"
-              },
-              {
-                question_id: 3,
-                question_title: "Find Peak Element",
-                status: "Solved",
-                link: "https://leetcode.com/problems/find-peak-element/"
-              }
-            ]
-          },
-          {
-            title: "Boundaries",
-            questions: [
-              {
-                question_id: 4,
-                question_title: "Find First and Last Position",
-                status: "Solved",
-                link: "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: "Mathematics",
-        subtopics: [
-          {
-            title: "Algebra Basics",
-            questions: [
-              {
-                question_id: 5,
-                question_title: "Solve Linear Equations",
-                status: "Solved",
-                link: "https://leetcode.com/problems/solve-the-equation/"
-              },
-              {
-                question_id: 6,
-                question_title: "Quadratic Formula",
-                status: "Solved",
-                link: "https://www.geeksforgeeks.org/quadratic-equation/"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: "Implementation",
-        subtopics: [
-          {
-            title: "Pattern Problems",
-            questions: [
-              {
-                question_id: 7,
-                question_title: "Star Patterns",
-                status: "Unsolved",
-                link: "https://www.geeksforgeeks.org/programs-print-different-patterns/"
-              }
-            ]
-          }
-        ]
+    const fetchTopics = async () => {
+      try {
+        const res = await axios.get("https://codehurdle.com/gettopics", { withCredentials: true });
+        setTopicsData(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch topics:", err);
       }
-    ]
-  
-    setTopicsData(dummyTopics)
-  }, [])
-  
+    };
+    fetchTopics();
+  }, []);
 
   const toggleTopic = (title: string) => {
     setExpandedTopic((prev) => (prev === title ? null : title))
