@@ -20,7 +20,8 @@ export default function EditProfilePage() {
     profilePicture: "",
     location: "",
     college: "",
-    batch: "2026"
+    batch: "2026",
+    bio:""
   });
 
    useEffect(() => {
@@ -34,11 +35,6 @@ export default function EditProfilePage() {
     };
     fetchUser();
   }, []);
-
-  useEffect(() => {
-    setEditData(profile);
-  }, [profile]);
-=======
 
 
   const handleChange = (

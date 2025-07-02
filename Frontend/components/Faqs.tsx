@@ -67,7 +67,7 @@ export const FAQs = () => {
                         Frequently Asked Questions
                     </h2>
                     <p className="mt-6 text-lg sm:text-xl max-w-3xl mx-auto text-gray-300">
-                        Can't find what you're looking for? <span className="text-cyan-300">Contact our support team</span>.
+                        Cant find what youre looking for? <span className="text-cyan-300">Contact our support team</span>.
                     </p>
                 </div>
 

@@ -18,7 +18,7 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         className={`h-full rounded-full transition-all duration-500 ease-out ${
-          value < 30 
+          value< 30 
             ? "bg-gradient-to-r from-red-500 to-pink-600" 
             : value < 70 
             ? "bg-gradient-to-r from-amber-400 to-orange-500"
