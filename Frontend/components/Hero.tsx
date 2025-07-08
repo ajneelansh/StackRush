@@ -1,51 +1,106 @@
 "use client"
+
+import { FiArrowRight, FiBarChart2 } from "react-icons/fi"
+import { motion } from "framer-motion"
+import Image from "next/image"
+import heroimage from "../assets/heroimage.png"
+
 export const Hero = () => {
-    const handleSignIn = () => {
-        window.location.href = 'http://codehurdle.com/auth/google';
-    }
-    
-    return ( 
-        <div className=" bg-gray-950 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-gray-950 to-purple-900/30 py-20 relative overflow-hidden"> 
-    
-            <div className="container relative z-10 mx-auto px-4">
-                <div className="flex items-center justify-center">
-                    <p className="inline-flex gap-3 border border-cyan-400/30 py-1 px-3 rounded-full bg-cyan-900/10 backdrop-blur-sm animate-bounce">
-                        <span className="bg-[linear-gradient(90deg,#00DBDE,#FC00FF)] text-transparent bg-clip-text font-medium">
-                            ✨ New Platform Alert! Try Beta Now
-                        </span>
-                    </p>
-                </div>
-                
-                <div className="flex justify-center mt-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-center leading-tight bg-clip-text text-transparent bg-[linear-gradient(90deg,#FFF,#B5FFFD)] [-webkit-background-clip:text]">
-                        The First Open Source Platform Integrating <br/><span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500"> Competetive Programming</span><br/>
-                        & <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">DSA Ratings</span>
-                    </h1>
-                </div>
-                
-                
-                <div className="flex justify-center gap-4 mt-12">
-                    <button 
-                        className="relative bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-3 px-8 rounded-full font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 group overflow-hidden"
-                        onClick={handleSignIn}
-                    >
-                        <span className="relative z-10">Start Coding Free</span>
-                        <span className="absolute inset-0 bg-[linear-gradient(90deg,#00DBDE,#FC00FF)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay"></span>
-                    </button>
-                
-                </div>
-                
-                <div className="mt-20 mx-auto max-w-4xl bg-gray-900/50 border border-gray-800 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex gap-2 mb-4">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    </div>
-                    <div className="font-mono text-sm sm:text-base text-cyan-100 animate-pulse">
-                        <span className="text-purple-400">const</span> <span className="text-cyan-300">success</span> = <span className="text-yellow-200">await</span> <span className="text-green-400">solveProblem</span>(<span className="text-pink-300">yourSkillLevel</span>);
-                    </div>
-                </div>
+  const handleSignIn = () => {
+    window.location.href = "http://codehurdle.com/auth/google"
+  }
+
+  return (
+    <section className="bg-black text-white py-24 px-6 sm:px-12 lg:px-20 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* Left Side */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-6 tracking-tight">
+            The First Open Source Platform Integrating{" "}
+            <span className="bg-gradient-to-r from-purple-600 to-purple-400 text-transparent bg-clip-text">
+              Competitive Programming
+            </span>{" "}
+            &{" "}
+            <span className="bg-gradient-to-r from-pink-600 to-yellow-400 text-transparent bg-clip-text">
+              DSA Ratings
+            </span>
+          </h1>
+
+          <p className="text-lg text-gray-300 mb-8 max-w-xl leading-relaxed">
+            Practice. Track. Compete. The open-source platform that combines
+            coding challenges with real-time performance analytics.
+          </p>
+
+     
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-wrap gap-4 mb-10"
+          >
+            <button
+              onClick={handleSignIn}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-400 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:scale-105 transition-transform"
+            >
+              Start Coding Free
+              <FiArrowRight />
+            </button>
+            
+          </motion.div>
+
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 text-sm text-gray-400 font-medium"
+          >
+            <div className="flex items-center gap-2">✅ Live DSA Ratings</div>
+            <div className="flex items-center gap-2">✅ Open Source</div>
+            <div className="flex items-center gap-2">✅ Practice Tracker</div>
+          </motion.div>
+        </motion.div>
+
+        {/* Right Side */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="relative w-full"
+        >
+          <div className="relative w-full h-72 sm:h-96 lg:h-[420px] rounded-2xl overflow-hidden shadow-xl border border-purple-900/20">
+            <Image
+              src={heroimage}
+              alt="Coding laptop"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+            className="absolute bottom-[-50px] left-4 sm:left-6 bg-white/95 backdrop-blur-md border border-purple-200 p-4 rounded-xl shadow-lg w-60 sm:w-64"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">DSA Rating</p>
+                <p className="text-2xl font-bold text-purple-600">1850</p>
+              </div>
+              <FiBarChart2 className="text-purple-500 text-3xl" />
             </div>
-        </div>
-    )
+            <p className="mt-2 text-xs text-gray-500">Consistent Growth 📈</p>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
 }
+
+export default Hero

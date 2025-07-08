@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <ProgressProvider>
-      <div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
+      <div className="flex h-screen bg-black  text-white overflow-hidden">
         {/* Mobile toggle button */}
         <button
           className="md:hidden fixed top-6 left-4 z-[100] p-2 bg-purple-900/80 border border-purple-700 rounded-lg"

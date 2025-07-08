@@ -9,6 +9,7 @@ interface ProfileData {
   batch: string;
   profilePicture?: string;
   bio?: string; 
+  username: string;
 }
 
 
@@ -31,7 +32,8 @@ export const useUserStore = create<UserState>()(
         college: "",
         batch: "2026",
         profilePicture: "",
-        bio: ""
+        bio: "",
+        username:"",
       },
       
       addCoins: (amount) =>

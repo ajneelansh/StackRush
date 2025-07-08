@@ -5,11 +5,11 @@ import { Mail, Phone, Instagram, Linkedin, Twitter, BookOpen, Award } from "luci
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-950 text-white py-20  px-4 sm:px-6 relative overflow-hidden">
+    <footer className="bg-black text-white py-20  px-4 sm:px-6 relative overflow-hidden">
      
       <div className="absolute inset-0 z-0">
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-900 to-transparent"></div>
-        <div className="absolute top-1/3 right-0 w-64 h-64 bg-cyan-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-5"></div>
+        <div className="absolute top-1/3 right-0 w-64 h-64 bg-purple-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-5"></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -52,7 +52,7 @@ export const Footer = () => {
                 rel="noopener noreferrer"
                 className="bg-gray-900/50 p-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 hover:scale-110 border border-gray-800 hover:border-cyan-400/30"
               >
-                <span className="text-cyan-300">{social.icon}</span>
+                <span className="text-purple-500">{social.icon}</span>
                 <span className="sr-only">{social.label}</span>
               </a>
             ))
@@ -71,7 +71,7 @@ export const Footer = () => {
 
             <div className="pt-2">
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
-                <span className="text-sm font-medium text-cyan-300">Join our community of developers</span>
+                <span className="text-sm font-medium text-purple-300">Join our community of developers</span>
               </div>
             </div>
           </div>
@@ -79,10 +79,10 @@ export const Footer = () => {
           {/* Learn Section */}
           <div>
             <h3 className="text-lg font-semibold mb-5 text-white relative inline-flex items-center group">
-              <BookOpen className="h-4 w-4 mr-2 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+              <BookOpen className="h-4 w-4 mr-2 text-purple-600 group-hover:text-purple-400 transition-colors" />
               <span className="relative">
                 LEARN
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-purple-400 opacity-70 group-hover:opacity-100 transition-opacity"></span>
               </span>
             </h3>
             <ul className="space-y-3">
@@ -91,7 +91,7 @@ export const Footer = () => {
                   key={item}
                   className="group flex items-center text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                  <div className="h-1.5 w-1.5 rounded-full bg-purple-600 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                   <a href="#" className="text-sm hover:translate-x-1 transition-transform duration-200">
                     {item}
                   </a>
@@ -103,10 +103,10 @@ export const Footer = () => {
           {/* Practice Section */}
           <div>
             <h3 className="text-lg font-semibold mb-5 text-white relative inline-flex items-center group">
-              <Award className="h-4 w-4 mr-2 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+              <Award className="h-4 w-4 mr-2 text-purple-600 group-hover:text-purple-400 transition-colors" />
               <span className="relative">
                 PRACTICE
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r  from-purple-600 to-purple-400 opacity-70 group-hover:opacity-100 transition-opacity"></span>
               </span>
             </h3>
             <ul className="space-y-3">
@@ -115,7 +115,7 @@ export const Footer = () => {
                   key={item}
                   className="group flex items-center text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                  <div className="h-1.5 w-1.5 rounded-full bg-purple-600 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                   <a href="#" className="text-sm hover:translate-x-1 transition-transform duration-200">
                     {item}
                   </a>
@@ -127,22 +127,22 @@ export const Footer = () => {
           {/* Connect Section */}
           <div>
             <h3 className="text-lg font-semibold mb-5 text-white relative inline-flex items-center group">
-              <Mail className="h-4 w-4 mr-2 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+              <Mail className="h-4 w-4 mr-2 text-purple-600 group-hover:text-purple-400 transition-colors" />
               <span className="relative">
                 CONNECT
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r  from-purple-600 to-purple-400 opacity-70 group-hover:opacity-100 transition-opacity"></span>
               </span>
             </h3>
             <ul className="space-y-4">
               <li className="flex items-center text-gray-300 hover:text-white transition-colors duration-200 group">
-                <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-cyan-400/30">
-                  <Phone className="h-4 w-4 text-cyan-400 group-hover:text-cyan-300" />
+                <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-purple-600/30">
+                  <Phone className="h-4 w-4 text-purple-600 group-hover:text-purple-400" />
                 </div>
                 <span className="text-sm">+123 456 7890</span>
               </li>
               <li className="flex items-center text-gray-300 hover:text-white transition-colors duration-200 group">
-                <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-cyan-400/30">
-                  <Mail className="h-4 w-4 text-cyan-400 group-hover:text-cyan-300" />
+                <div className="p-2 rounded-full bg-gray-900/50 mr-3 group-hover:bg-gray-800 transition-colors duration-300 border border-gray-800 group-hover:border-purple-600/30">
+                  <Mail className="h-4 w-4 text-purple-600 group-hover:text-purple-400" />
                 </div>
                 <a
                   href="mailto:mahesh@codehurdle.com"
@@ -167,7 +167,7 @@ export const Footer = () => {
                 <a 
                   key={item} 
                   href="#" 
-                  className="text-xs text-gray-400 hover:text-cyan-300 transition-colors duration-200"
+                  className="text-xs text-gray-400 hover:text-purple-300 transition-colors duration-200"
                 >
                   {item}
                 </a>

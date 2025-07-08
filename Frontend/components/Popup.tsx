@@ -5,12 +5,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import axios from "axios";
+import { FiArrowRight } from "react-icons/fi";
 
 type PopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { name: string; college: string; batch: string }) => void;
-  user: { name: string, email: string, profilePicture: string, batch?: string, college?:string } | null;
+  onSubmit: (data: {
+    name: string;
+    college: string;
+    batch: string;
+    username: string;
+  }) => void;
+  user: {
+    name: string;
+    email: string;
+    profilePicture: string;
+    batch?: string;
+    college?: string;
+    username?: string;
+  } | null;
 };
 
 export const Popup = ({ open, onClose, onSubmit, user }: PopupProps) => {
@@ -18,109 +31,134 @@ export const Popup = ({ open, onClose, onSubmit, user }: PopupProps) => {
     name: user?.name || "",
     college: user?.college || "",
     batch: user?.batch || "2026",
+    username: user?.username || "",
   });
+
   const [error, setError] = useState("");
+
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || "",
         college: user.college || "",
         batch: user.batch || "2026",
+        username: user.username || "",
       });
     }
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
-  const { name, college, batch } = formData;
+    const { name, college, batch, username } = formData;
 
-  if (!name.trim() || !college.trim()) {
-    setError("Name and College cannot be empty.");
-    return;
-  }
+    if (!name.trim() || !college.trim() || !username.trim()) {
+      setError("All fields are required.");
+      return;
+    }
 
-  setError("");
+    setError("");
 
-  try {
-    await axios.post(
-      "http://localhost:8080/updateprofile",
-      { name, college, batch },
-      { withCredentials: true }
-    );
-    onClose(); 
-  } catch (error) {
-    console.error("Failed to update profile:", error);
-    setError("Failed to update profile. Try again.");
-  }
-};
+    try {
+      await axios.post(
+        "http://localhost:8080/updateprofile",
+        { name, college, batch, username },
+        { withCredentials: true }
+      );
+
+      onSubmit(formData);
+      onClose();
+      window.location.href = `/profile/${username}`;
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      setError("Username may already exist. Try a different one.");
+    }
+  };
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-gradient-to-br from-gray-900/90 to-purple-950/90 p-6 rounded-2xl w-[90%] max-w-md shadow-2xl border border-purple-700"
-            initial={{ scale: 0.8, opacity: 0 }}
+            className="relative w-[90%] max-w-md bg-gradient-to-br from-gray-950/90 to-purple-950/80 border border-purple-800/50 shadow-2xl rounded-2xl px-6 py-8 overflow-hidden"
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 250, damping: 22 }}
           >
-            <h2 className="text-xl font-semibold text-purple-200 mb-4 text-center">Complete Your Profile</h2>
-            <div className="space-y-3">
+            {/* Neon border glow */}
+            <div className="absolute -inset-1 rounded-2xl border border-purple-600 blur-sm animate-pulse opacity-20 pointer-events-none" />
+
+            <h2 className="text-center text-2xl font-extrabold mb-6 bg-gradient-to-r from-purple-400 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+              Setup Your Profile
+            </h2>
+
+            <div className="space-y-4">
+              {[
+                { name: "name", label: "Full Name", placeholder: "Your full name" },
+                { name: "username", label: "Username", placeholder: "Unique handle (e.g. xyz123)" },
+                { name: "college", label: "College", placeholder: "Your college/institute" },
+              ].map(({ name, label, placeholder }) => (
+                <div key={name}>
+                  <label className="text-sm font-medium text-purple-300 mb-1 block">
+                    {label}
+                  </label>
+                  <Input
+                    name={name}
+                    value={(formData as any)[name]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    className="bg-gray-900 text-white border border-gray-700 focus:border-purple-500 focus:ring-purple-500"
+                  />
+                </div>
+              ))}
+
               <div>
-                <label className="text-sm text-purple-300">Full Name</label>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="mt-1 bg-gray-800 text-white border-purple-600"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-purple-300">College</label>
-                <Input
-                  name="college"
-                  value={formData.college}
-                  onChange={handleChange}
-                  className="mt-1 bg-gray-800 text-white border-purple-600"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-purple-300">Passout Batch</label>
+                <label className="text-sm font-medium text-purple-300 mb-1 block">
+                  Passout Batch
+                </label>
                 <select
                   name="batch"
                   value={formData.batch}
                   onChange={handleChange}
-                  className="w-full mt-1 rounded-md bg-gray-800 text-white border-purple-600 px-3 py-2"
+                  className="w-full px-3 py-2 rounded-md bg-gray-900 text-white border border-gray-700 focus:border-purple-500 focus:ring-purple-500"
                 >
-                  <option value="2025">2025</option>
                   <option value="2026">2026</option>
                   <option value="2027">2027</option>
                   <option value="2028">2028</option>
+                  <option value="2029">2029</option>
                 </select>
               </div>
+
+              {error && (
+                <p className="text-sm text-red-400 bg-red-900/20 border border-red-700/30 p-2 rounded-md">
+                  {error}
+                </p>
+              )}
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-4 mt-8">
               <Button
-                className="flex-1 bg-gradient-to-r from-purple-500 to-cyan-600 hover:from-purple-400 hover:to-cyan-500"
                 onClick={handleSubmit}
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-400 text-white font-light py-2 rounded-full hover:scale-105 transition-transform"
               >
-                Save
+                Save Profile
+                <FiArrowRight className="text-xl" />
               </Button>
               <Button
-                variant="outline"
-                className="flex-1 border-purple-700 text-purple-300 hover:bg-purple-900/30"
                 onClick={onClose}
+                variant="outline"
+                className="flex-1 border border-gray-600 text-white rounded-full hover:bg-gray-800 hover:text-white transition font-light"
               >
                 Cancel
               </Button>

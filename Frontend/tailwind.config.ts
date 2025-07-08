@@ -8,6 +8,7 @@ const config: Config = {
                 padding:'1rem',
                 centre:true,
             },
+            
         },
     },
     plugins: [],

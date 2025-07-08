@@ -2,19 +2,46 @@
 
 import logoImage from "../assets/logo-nav.png"
 import Image from "next/image"
+import Link from "next/link"
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { FiMenu, FiX } from "react-icons/fi"
 
 export const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const pathname = usePathname()
+  const [activeSection, setActiveSection] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("authToken")
-      setIsLoggedIn(!!token)
+    const token = localStorage.getItem("authToken")
+    setIsLoggedIn(!!token)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["home", "features", "faqs"]
+      let found = false
+
+      for (const id of sections) {
+        const section = document.getElementById(id)
+        if (section) {
+          const rect = section.getBoundingClientRect()
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(`#${id}`)
+            found = true
+            break
+          }
+        }
+      }
+
+      if (!found) {
+        setActiveSection(null)
+      }
     }
-    checkAuth()
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const handleSignIn = () => {
@@ -27,132 +54,173 @@ export const NavBar = () => {
     window.location.href = "/"
   }
 
+  const navItems = [
+    { href: "#home", label: "Home" },
+    { href: "#features", label: "Features" },
+    { href: "#faqs", label: "FAQs" },
+  ]
+
   return (
-    <div className="sticky top-0 z-50 min-h-20 bg-gray-950 border-b border-gray-800 backdrop-blur-sm bg-opacity-80">
-      <div className="max-w-screen-xl mx-auto w-full px-4">
-        <div className="py-4 flex items-center justify-between">
-    
-          <div className="relative">
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-black shadow-[0_3px_10px_rgba(128,0,255,0.25)] border-b border-purple-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div className="flex items-center justify-between py-4">
+ 
+          <Link href="/">
             <Image
               src={logoImage}
               alt="Logo"
-              className="w-45 mt-2 hover:brightness-110 transition-all"
-              width={180}
+              width={160}
               height={40}
+              className="brightness-125 hover:scale-105 transition-transform"
             />
+          </Link>
+
+       
+          <nav className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`group relative font-medium transition ${
+                  activeSection === item.href
+                    ? "text-purple-400"
+                    : "text-gray-300 hover:text-purple-400"
+                }`}
+              >
+                {item.label}
+                <span
+                  className={`absolute left-0 -bottom-1 h-0.5 bg-purple-400 transition-all duration-300 ${
+                    activeSection === item.href ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
+            ))}
+
+            {isLoggedIn && (
+              <>
+                <Link
+                  href="/problems"
+                  className={`group relative font-medium transition ${
+                    pathname === "/problems"
+                      ? "text-purple-400"
+                      : "text-gray-300 hover:text-purple-400"
+                  }`}
+                >
+                  Problems
+                  <span
+                    className={`absolute left-0 -bottom-1 h-0.5 bg-purple-400 transition-all duration-300 ${
+                      pathname === "/problems" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+                <Link
+                  href="/profile"
+                  className={`group relative font-medium transition ${
+                    pathname === "/profile"
+                      ? "text-purple-400"
+                      : "text-gray-300 hover:text-purple-400"
+                  }`}
+                >
+                  Profile
+                  <span
+                    className={`absolute left-0 -bottom-1 h-0.5 bg-purple-400 transition-all duration-300 ${
+                      pathname === "/profile" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </>
+            )}
+          </nav>
+
+          <div className="hidden md:block">
+            {isLoggedIn ? (
+              <button
+                onClick={handleSignOut}
+                className="bg-gradient-to-r from-purple-600 to-purple-400 text-white py-2 px-6 rounded-full font-semibold transition hover:shadow-purple-600/50 hover:scale-105"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="bg-gradient-to-r from-purple-600 to-purple-400 text-white py-2 px-6 rounded-full font-semibold transition hover:shadow-purple-600/50 hover:scale-105"
+              >
+                Sign In
+              </button>
+            )}
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <nav className="flex gap-6 items-center">
-              <a href="#about" className="text-gray-300 hover:text-cyan-300 transition-all font-medium group">
-                About
-                <span className="block h-0.5 bg-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </a>
-              <a href="#features" className="text-gray-300 hover:text-purple-300 transition-all font-medium group">
-                Features
-                <span className="block h-0.5 bg-purple-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-pink-300 transition-all font-medium group">
-                Updates
-                <span className="block h-0.5 bg-pink-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-emerald-300 transition-all font-medium group">
-                Sheets
-                <span className="block h-0.5 bg-emerald-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </a>
-              {isLoggedIn && (
-                <>
-                  <a href="/problems" className="text-gray-300 hover:text-blue-300 transition-all font-medium group">
-                    Problems
-                    <span className="block h-0.5 bg-blue-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-                  </a>
-                  <a href="/profile" className="text-gray-300 hover:text-violet-300 transition-all font-medium group">
-                    Profile
-                    <span className="block h-0.5 bg-violet-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-                  </a>
-                </>
-              )}
-            </nav>
 
-            {/* Auth Button */}
-            <div>
-              {isLoggedIn ? (
-                <button
-                  onClick={handleSignOut}
-                  className="relative bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-2 px-6 rounded-full font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 group overflow-hidden"
-                >
-                  <span className="relative z-10">Sign Out</span>
-                  <span className="absolute inset-0 bg-[linear-gradient(90deg,#00DBDE,#FC00FF)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay"></span>
-                </button>
-              ) : (
-                <button
-                  onClick={handleSignIn}
-                  className="relative bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-2 px-6 rounded-full font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 group overflow-hidden"
-                >
-                  <span className="relative z-10">Sign In</span>
-                  <span className="absolute inset-0 bg-[linear-gradient(90deg,#00DBDE,#FC00FF)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay"></span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-cyan-300 focus:outline-none transition-all"
+              className="text-purple-400 focus:outline-none"
             >
-              {isMenuOpen ? <FiX size={24} className="text-cyan-300" /> : <FiMenu size={24} />}
+              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+
         {isMenuOpen && (
-          <div className="md:hidden pb-6 pt-2 bg-gray-900/90 backdrop-blur-lg rounded-lg mt-2 border border-gray-800">
-            <nav className="flex flex-col gap-3 px-4">
-              <a href="#about" className="text-gray-300 hover:text-cyan-300 transition-all font-medium py-2 border-b border-gray-800">
-                About
-              </a>
-              <a href="#features" className="text-gray-300 hover:text-purple-300 transition-all font-medium py-2 border-b border-gray-800">
-                Features
-              </a>
-              <a href="#" className="text-gray-300 hover:text-pink-300 transition-all font-medium py-2 border-b border-gray-800">
-                Updates
-              </a>
-              <a href="#" className="text-gray-300 hover:text-emerald-300 transition-all font-medium py-2 border-b border-gray-800">
-                Sheets
-              </a>
-              {isLoggedIn && (
-                <>
-                  <a href="/problems" className="text-gray-300 hover:text-blue-300 transition-all font-medium py-2 border-b border-gray-800">
-                    Problems
-                  </a>
-                  <a href="/profile" className="text-gray-300 hover:text-violet-300 transition-all font-medium py-2 border-b border-gray-800">
-                    Profile
-                  </a>
-                  <button
-                    onClick={handleSignOut}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-3 px-4 rounded-full font-bold cursor-pointer transition-all duration-300 mt-3 w-full text-center"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              )}
-              {!isLoggedIn && (
-                <button
-                  onClick={handleSignIn}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white py-3 px-4 rounded-full font-bold cursor-pointer transition-all duration-300 mt-3 w-full text-center"
+          <div className="md:hidden bg-black/95 backdrop-blur-lg rounded-xl px-4 py-4 border border-purple-800 space-y-4 origin-top transform overflow-hidden">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`block font-medium transition ${
+                  activeSection === item.href
+                    ? "text-purple-400"
+                    : "text-gray-300 hover:text-purple-400"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {isLoggedIn && (
+              <>
+                <Link
+                  href="/problems"
+                  className={`block font-medium ${
+                    pathname === "/problems"
+                      ? "text-purple-400"
+                      : "text-gray-300 hover:text-purple-400"
+                  }`}
                 >
-                  Sign In
+                  Problems
+                </Link>
+                <Link
+                  href="/profile"
+                  className={`block font-medium ${
+                    pathname === "/profile"
+                      ? "text-purple-400"
+                      : "text-gray-300 hover:text-purple-400"
+                  }`}
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-white bg-gradient-to-r from-purple-600 to-purple-400 py-2 rounded-full font-semibold mt-2 hover:shadow-purple-500/50 transition"
+                >
+                  Sign Out
                 </button>
-              )}
-            </nav>
+              </>
+            )}
+
+            {!isLoggedIn && (
+              <button
+                onClick={handleSignIn}
+                className="w-full text-white bg-gradient-to-r from-purple-600 to-purple-400 py-2 rounded-full font-semibold transition hover:shadow-purple-500/50"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </header>
   )
 }
 

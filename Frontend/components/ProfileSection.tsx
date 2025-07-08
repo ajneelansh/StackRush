@@ -1,295 +1,118 @@
-// "use client";
-
-// import { useState } from "react";
-// import Image from "next/image";
-// import { useRouter } from "next/navigation";
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent } from "@/components/ui/card";
-// import { Edit } from "lucide-react";
-// import { Heatmap } from "@/components/Heatmap";
-// import { Header } from "@/components/Header";
-// import { useUserStore } from "@/lib/stores/useUserStore"; // adjust path if needed
-
-// export default function ProfileSection() {
-//   const router = useRouter();
-//   const profile = useUserStore((state) => state.profile);
-
-//   const [image, setImage] = useState<File | null>(null);
-//   const [preview, setPreview] = useState<string>("");
-
-//   const [heatmapData] = useState<Record<string, number>>({});
-
-//   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (file && file.size < 1024 * 1024 && file.type.startsWith("image/")) {
-//       setImage(file);
-//       setPreview(URL.createObjectURL(file));
-//     } else {
-//       alert("Please upload a valid image (PNG/JPG, max 1MB).");
-//     }
-//   };
-
-//   return (
-//     <div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
-//       <div className="flex-1 flex flex-col overflow-auto max-w-[1600px] mx-auto w-full">
-//         <Header />
-//         <main className="p-4 md:p-6 overflow-y-auto">
-//           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//             <div className="lg:col-span-1">
-//               <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-//                 <CardContent>
-//                   <div className="flex flex-col items-center gap-4">
-//                     <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-purple-500">
-//                       {preview ? (
-//                         <Image src={preview} alt="Profile Preview" fill  unoptimized priority className="object-cover" />
-//                       ) : (
-//                         <div className="w-full h-full bg-gradient-to-br from-purple-900/30 to-cyan-900/30 flex items-center justify-center">
-//                           <span className="text-4xl">👤</span>
-//                         </div>
-//                       )}
-//                     </div>
-//                     <label className="cursor-pointer">
-//                       <div className="bg-purple-900/50 border border-purple-700 hover:bg-purple-800 text-sm px-4 py-2 rounded-md text-white text-center w-fit">
-//                         Change Photo
-//                         <input
-//                           type="file"
-//                           accept="image/*"
-//                           onChange={handleImageChange}
-//                           className="hidden"
-//                         />
-//                       </div>
-//                     </label>
-//                   </div>
-
-//                   <div className="mt-8 space-y-4">
-//                     <div>
-//                       <h3 className="text-sm text-purple-300 mb-1">Name</h3>
-//                       <p className="text-white">{profile.name}</p>
-//                     </div>
-//                     <div>
-//                       <h3 className="text-sm text-purple-300 mb-1">Email</h3>
-//                       <p className="text-white">{profile.email}</p>
-//                     </div>
-//                     <div>
-//                       <h3 className="text-sm text-purple-300 mb-1">Location</h3>
-//                       <p className="text-white">{profile.location}</p>
-//                     </div>
-//                     <div>
-//                       <h3 className="text-sm text-purple-300 mb-1">College</h3>
-//                       <p className="text-white">{profile.college}</p>
-//                     </div>
-//                     <div>
-//                       <h3 className="text-sm text-purple-300 mb-1">Passout Batch</h3>
-//                       <p className="text-white">{profile.batch}</p>
-//                     </div>
-
-//                     <Button
-//                       onClick={() => {
-//                         router.push("/profile/edit");
-//                       }}
-//                       className="mt-4 w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500"
-//                     >
-//                       <Edit className="h-4 w-4 mr-2" />
-//                       Edit Profile
-//                     </Button>
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </div>
-
-//             <div className="lg:col-span-2 space-y-6">
-//               <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-//                 <CardContent>
-//                   <div className="grid grid-cols-2 gap-4">
-//                     <div className="text-center border border-purple-800 rounded-lg p-8">
-//                       <p className="text-3xl font-bold text-cyan-400">0</p>
-//                       <p className="text-md text-purple-300">Contests Attended</p>
-//                     </div>
-//                     <div className="text-center border border-purple-800 rounded-lg p-8">
-//                       <p className="text-3xl font-bold text-cyan-400">0</p>
-//                       <p className="text-md text-purple-300">Problems Solved</p>
-//                     </div>
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//               <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-//                 <CardContent>
-//                   <div className="w-full overflow-x-auto">
-//                     <div className="min-w-[300px] rounded-lg border border-purple-800/30 bg-gradient-to-br from-gray-900/50 to-purple-950/30 p-4">
-//                       <h2 className="text-white font-semibold text-sm mb-6">
-//                         {Object.values(heatmapData).reduce((sum, count) => sum + count, 0)} submissions in the past year
-//                       </h2>
-//                       <Heatmap data={heatmapData} />
-//                     </div>
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </div>
-//           </div>
-//         </main>
-//       </div>
-//     </div>
-//   );
-// }
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Edit } from "lucide-react";
 import { Heatmap } from "@/components/Heatmap";
 import { Header } from "@/components/Header";
-import { useUserStore } from "@/lib/stores/useUserStore"; 
-import axios from "axios";
+import { useUserStore } from "@/lib/stores/useUserStore";
 
 export default function ProfileSection() {
   const router = useRouter();
   const profile = useUserStore((state) => state.profile);
-
-  const [user, setUser] = useState<{ name?: string; email?: string; profilePicture?: string; college?:string; location?:string; batch?:string} | null>(null);
-  const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
-
-  useEffect(() => {
-    const fetchHeatmapData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/getheatmap", { withCredentials: true });
-        setHeatmapData(response.data?.data || {});
-      } catch (error) {
-        console.error("Failed to fetch heatmap data:", error);
-      }
-    };
-    fetchHeatmapData();
-  }, []);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/getuser", {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser({
-            name: data.name,
-            email: data.email,
-            profilePicture: data.profile_picture || "",
-            college: data.college,
-            location: data.location,
-            batch:data.batch
-          });
-        } else {
-          console.warn("Failed to fetch user info");
-        }
-      } catch (err) {
-        console.error("Error fetching user info", err);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>("");
+  const [heatmapData] = useState<Record<string, number>>({});
 
   return (
-    <div className="flex h-screen bg-black bg-gradient-to-b from-black to-purple-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-black text-white overflow-hidden">
       <div className="flex-1 flex flex-col overflow-auto max-w-[1600px] mx-auto w-full">
         <Header />
         <main className="p-4 md:p-6 overflow-y-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sidebar */}
             <div className="lg:col-span-1">
-              <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-                <CardContent>
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-purple-500">
-
-                      {preview ? (
-                        <Image src={preview} alt="Profile Preview" fill unoptimized priority className="object-cover" />
-
-                      {user?.profilePicture ? (
-                      <Image src={user.profilePicture} alt="Profile Picture" fill className="object-cover" />
-
-                      ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-purple-900/30 to-cyan-900/30 flex items-center justify-center">
+              <div className="relative p-6 rounded-xl border border-white/10 backdrop-blur-lg bg-white/5 hover:shadow-lg transition duration-300">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500">
+                    {preview ? (
+                      <Image
+                        src={preview}
+                        alt="Profile Preview"
+                        fill
+                        unoptimized
+                        priority
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-800/30 to-cyan-900/30 flex items-center justify-center">
                         <span className="text-4xl">👤</span>
                       </div>
-                      )}
-                    </div>
+                    )}
                   </div>
 
-                  <div className="mt-6 text-center">
-                    <p className="text-white text-sm px-4 ">
+                  {/* Username below photo */}
+                  <div className="text-center">
+                    <p className="text-lg font-semibold text-purple-300">@{profile.username}</p>
+                  </div>
+
+                  {/* Beautiful Bio Card */}
+                  <div className="w-full">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-600 to-cyan-600 text-white">
+                        Bio
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-lg border border-white/10 bg-gradient-to-br from-gray-800/50 to-purple-900/30 text-sm text-gray-300 leading-relaxed">
                       {profile.bio || "No bio added yet."}
-                    </p>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="mt-8 space-y-4">
-                    <div>
-                      <h3 className="text-sm text-purple-300 mb-1">Name</h3>
-                      <p className="text-white">{user?.name || "N/A"}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm text-purple-300 mb-1">Email</h3>
-                      <p className="text-white">{user?.email}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm text-purple-300 mb-1">Location</h3>
-                      <p className="text-white">{user?.location}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm text-purple-300 mb-1">College</h3>
-                      <p className="text-white">{user?.college}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm text-purple-300 mb-1">Passout Batch</h3>
-                      <p className="text-white">{user?.batch}</p>
-                    </div>
+                <div className="mt-8 space-y-4">
+                  <InfoBlock label="Name" value={profile.name} />
+                  <InfoBlock label="Email" value={profile.email} />
+                  <InfoBlock label="Location" value={profile.location} />
+                  <InfoBlock label="College" value={profile.college} />
+                  <InfoBlock label="Passout Batch" value={profile.batch} />
 
-                    <Button
-                      onClick={() => {
-                        router.push("/profile/edit");
-                      }}
-                      className="mt-4 w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Button
+                    onClick={() => router.push(`/profile/${profile.username}/edit`)}
+                    className="mt-4 w-full bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-600 hover:to-purple-800 font-light"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
+              </div>
             </div>
 
+            {/* Right Section */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center border border-purple-800 rounded-lg p-8">
-                      <p className="text-3xl font-bold text-cyan-400">0</p>
-                      <p className="text-md text-purple-300">Contests Attended</p>
-                    </div>
-                    <div className="text-center border border-purple-800 rounded-lg p-8">
-                      <p className="text-3xl font-bold text-cyan-400">0</p>
-                      <p className="text-md text-purple-300">Problems Solved</p>
-                    </div>
+              {/* Contests & Problems Solved */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <ProfileStatCard
+                  title="Contests Attended"
+                  value="0"
+                  tag="Activity"
+                  color="from-cyan-600 to-blue-500"
+                />
+                <ProfileStatCard
+                  title="Problems Solved"
+                  value="0"
+                  tag="Practice"
+                  color="from-purple-600 to-pink-500"
+                />
+              </div>
+
+              {/* Heatmap Card */}
+              <div className="relative p-5 rounded-xl border border-white/10 backdrop-blur-lg bg-white/5 hover:shadow-lg transition duration-300">
+                <div className="inline-block px-3 py-1 text-xs font-light rounded-full bg-gradient-to-r from-emerald-500 to-green-400 text-white mb-4">
+                  Submissions
+                </div>
+                <div className="w-full overflow-x-auto">
+                  <div className="min-w-[300px] p-4">
+                    <h2 className="text-white font-light text-sm mb-6">
+                      {Object.values(heatmapData).reduce((sum, count) => sum + count, 0)} submissions in the past year
+                    </h2>
+                    <Heatmap data={heatmapData} />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 bg-gradient-to-br from-gray-900/80 to-purple-950/60">
-                <CardContent>
-                  <div className="w-full overflow-x-auto">
-                    <div className="min-w-[300px] rounded-lg border border-purple-800/30 bg-gradient-to-br from-gray-900/50 to-purple-950/30 p-4">
-                      <h2 className="text-white font-semibold text-sm mb-6">
-                        {Object.values(heatmapData).reduce((sum, count) => sum + count, 0)} submissions in the past year
-                      </h2>
-                      <Heatmap data={heatmapData} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -297,3 +120,36 @@ export default function ProfileSection() {
     </div>
   );
 }
+
+// Reusable small component for info items
+const InfoBlock = ({ label, value }: { label: string; value: string }) => (
+  <div>
+    <h3 className="text-sm text-purple-300 mb-1">{label}</h3>
+    <p className="text-white break-words">{value}</p>
+  </div>
+);
+
+// Reusable card like feature card
+const ProfileStatCard = ({
+  title,
+  value,
+  tag,
+  color,
+}: {
+  title: string;
+  value: string;
+  tag: string;
+  color: string;
+}) => (
+  <div className="relative p-5 rounded-xl border border-white/10 backdrop-blur-lg bg-white/5 hover:shadow-lg transition duration-300">
+    <div
+      className={`inline-block px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r ${color} text-white mb-4`}
+    >
+      {tag}
+    </div>
+    <div className="text-center">
+      <p className="text-4xl font-bold text-purple-400">{value}</p>
+      <p className="text-md text-purple-200 mt-1">{title}</p>
+    </div>
+  </div>
+);
