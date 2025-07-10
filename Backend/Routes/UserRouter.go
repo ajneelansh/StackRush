@@ -18,5 +18,4 @@ func UserRoute(incomingRoutes *gin.Engine){
 	incomingRoutes.POST("/updatequestionstatus", Controllers.UpdateQuestionStatus())
 	incomingRoutes.POST("/updateprofile", Controllers.UpdateProfile())
 	incomingRoutes.POST("/verify", Controllers.VerifySubmission())
-	
 }

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +22,7 @@ type Response struct {
 	} `json:"data"`
 }
 
-func fetchRecentSubmissions(username string) []string {
+func fetchRecentLeetCodeSubmissions(username string) []string {
 	leetcodeURL := "https://leetcode.com/graphql/"
 	
 	query := `
@@ -73,32 +75,117 @@ func fetchRecentSubmissions(username string) []string {
 	return titles
 }
 
+type cfSubmission struct {
+	Problem struct {
+		ContestID int    `json:"contestId"`
+		Index     string `json:"index"`
+	} `json:"problem"`
+	Verdict string `json:"verdict"`
+}
+
+type cfResponse struct {
+	Result []cfSubmission `json:"result"`
+}
+
+func fetchRecentCodeforcesSubmissions(handle string, limit int) ([]string, error) {
+	url := fmt.Sprintf("https://codeforces.com/api/user.status?handle=%s&count=2", handle)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var cfRes cfResponse
+	if err := json.Unmarshal(body, &cfRes); err != nil {
+		return nil, err
+	}
+
+	seen := make(map[string]bool)
+	keys := []string{}
+
+	for _, sub := range cfRes.Result {
+		if sub.Verdict == "OK" {
+			key := fmt.Sprintf("%d-%s", sub.Problem.ContestID, strings.ToUpper(sub.Problem.Index))
+			if !seen[key] {
+				seen[key] = true
+				keys = append(keys, key)
+			}
+		}
+		if len(keys) == limit {
+			break
+		}
+	}
+	return keys, nil
+}
+
+
+func parseCodeforcesTitle(title string) (contestID int, index string, ok bool) {
+	title = strings.TrimSpace(strings.ToLower(title))
+	if !strings.HasPrefix(title, "codeforces problem ") {
+		return 0, "", false
+	}
+	parts := strings.Fields(title)
+	if len(parts) < 3 {
+		return 0, "", false
+	}
+
+	problemCode := parts[2] 
+	n := len(problemCode)
+	if n < 2 {
+		return 0, "", false
+	}
+	
+	numPart := problemCode[:n-1]
+	letterPart := problemCode[n-1:]
+
+	contestID, err := strconv.Atoi(numPart)
+	if err != nil {
+		return 0, "", false
+	}
+	return contestID, strings.ToUpper(letterPart), true
+}
+
 func VerifySubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Username string `json:"username"`
+			Handle   string `json:"handle"`  
 			Title    string `json:"title"`
 		}
-
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 			return
 		}
+		title := strings.TrimSpace(req.Title)
+		inputLower := strings.ToLower(title)
 
-		titles := fetchRecentSubmissions(req.Username)
-		if titles == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch submissions"})
+      if contestID, index, isCF := parseCodeforcesTitle(title); isCF {
+	expected := fmt.Sprintf("%d-%s", contestID, index)
+	keys, err := fetchRecentCodeforcesSubmissions(req.Handle, 2)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch Codeforces submissions"})
+		return
+	}
+	for _, k := range keys {
+		if k == expected {
+		_ = IncrementHeatmapData()
+			c.JSON(http.StatusOK, gin.H{"matched": true})
 			return
 		}
-		input := strings.TrimSpace(strings.ToLower(req.Title))
+	}
+	c.JSON(http.StatusOK, gin.H{"matched": false})
+	return
+}
 
-		for _, t := range titles {
-			if strings.ToLower(t) == input {
-				if err := IncrementHeatmapData(); err != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to increment heatmap data"})
-					return
-				}
+		
+		submissions:= fetchRecentLeetCodeSubmissions(req.Username)
+
+		for _, sub := range submissions {
+			if strings.ToLower(sub) == inputLower {
+			_ = IncrementHeatmapData()
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return
 			}
@@ -106,5 +193,6 @@ func VerifySubmission() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"matched": false})
 	}
 }
+
 
 

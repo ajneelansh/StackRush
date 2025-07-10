@@ -19,14 +19,9 @@ func IncrementHeatmapData() gin.HandlerFunc {
 			return
 		}
 
-		var uid int
-		switch v := userID.(type) {
-		case float64:
-			uid = int(v)
-		case int:
-			uid = v
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected user ID type"})
+		uid, ok := userID.(int)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
 			return
 		}
 
