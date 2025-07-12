@@ -15,6 +15,10 @@ type User struct {
 	College 		 string    `json:"college"`
 	Batch			 string    `json:"batch"`
 	Location         string    `json:"location"`
+	Username		 string    `json:"username" gorm:"unique"`
+	LeetcodeUsername string    `json:"leetcode_username" gorm:"unique"`
+	CodeforcesHandle string    `json:"codeforces_handle" gorm:"unique"`
+	Bio			     string    `json:"bio"`
 	
 }
 

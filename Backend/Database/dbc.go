@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB;
+var     DB *gorm.DB;
 
 func InitDb(){
    err:= godotenv.Load()
@@ -43,6 +43,24 @@ func InitDb(){
    if err := DB.AutoMigrate(&Models.UserQuestionStatus{}); err != nil {
     log.Fatal("Error migrating UserQuestionStatus model:", err)
    }
+    if err := DB.AutoMigrate(&Models.Topics{}); err != nil {
+    log.Fatal("Error migrating topic model:", err)
+   }
+   if err := DB.AutoMigrate(&Models.Pattern{}); err != nil {
+    log.Fatal("Error migrating pattern model:", err)
+   }
+   if err := DB.AutoMigrate(&Models.TopicWiseSheet{}); err != nil {
+    log.Fatal("Error migrating topicwisesheet model:", err)
+   }
+    var topicCount, patternCount int64
+    DB.Model(&Models.Topics{}).Count(&topicCount)
+	DB.Model(&Models.Pattern{}).Count(&patternCount)
+    if topicCount == 0 {
+		db.Exec(`ALTER SEQUENCE topics_id_seq RESTART WITH 1001`)
+	}
+    if patternCount == 0 {
+		db.Exec(`ALTER SEQUENCE patterns_id_seq RESTART WITH 101`)
+	}
    
    fmt.Println("DB connected")
 }
