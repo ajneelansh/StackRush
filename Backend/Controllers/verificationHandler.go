@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
+	
 	"strconv"
 	"strings"
 
@@ -181,11 +181,9 @@ func VerifySubmission() gin.HandlerFunc {
 			}
 			for _, k := range keys {
 				if k == expected {
-					go func() {
-						if err := IncrementHeatmapData(uid, req.Date); err != nil {
-							fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
-						}
-					}()
+					
+					go IncrementHeatmapData(uid, req.Date)
+					
 					go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 					go UpdateProgressData(uid, req.Rating)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
@@ -200,11 +198,9 @@ func VerifySubmission() gin.HandlerFunc {
 
 		for _, sub := range submissions {
 			if strings.ToLower(sub) == inputLower {
-				go func() {
-					if err := IncrementHeatmapData(uid, req.Date); err != nil {
-						fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
-					}
-				}()
+				
+				go IncrementHeatmapData(uid, req.Date)
+				
 				go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 				go UpdateProgressData(uid, req.Rating)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
@@ -217,12 +213,12 @@ func VerifySubmission() gin.HandlerFunc {
 
 func VerifySubmissionTopicwise() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req struct {
+	var req struct {
 			LcUsername string `json:"lcusername"`
 			CfHandle   string `json:"cfhandle"`
 			Title      string `json:"title"`
 			QuestionId int    `json:"question_id"`
-			TopicID     int    `json:"topic_id"`
+			TopicId    int    `json:"topic_id"`
 			Status     string `json:"status"`
 			Date       string `json:"date"`
 		}
@@ -249,13 +245,11 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 			}
 			for _, k := range keys {
 				if k == expected {
-					go func() {
-						if err := IncrementHeatmapData(uid, req.Date); err != nil {
-							fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
-						}
-					}()
-					go UpdateTopicWiseSheetStatus(uid, req.QuestionId, req.Status)
-					go UpdateTopicWiseSheetProgress(uid, req.TopicID)
+					
+					go IncrementHeatmapData(uid, req.Date)
+					
+					go UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
+					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
 					return
 				}
@@ -268,13 +262,11 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 
 		for _, sub := range submissions {
 			if strings.ToLower(sub) == inputLower {
-				go func() {
-					if err := IncrementHeatmapData(uid, req.Date); err != nil {
-						fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
-					}
-				}()
-				go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
-				go UpdateProgressData(uid, req.TopicID)
+				
+				go IncrementHeatmapData(uid, req.Date)
+				
+				go UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
+					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return
 			}

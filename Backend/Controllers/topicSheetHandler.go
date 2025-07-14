@@ -10,10 +10,10 @@ import (
 	"gorm.io/datatypes"
 )
 
-func FetchTopics () gin.HandlerFunc{
-	return func(c *gin.Context){
-		var topics []Models.Topics;
-		if err := Database.DB.Find(&topics).Error; err != nil {
+func FetchTopics() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var topics []Models.Topics
+		if err := Database.DB.Order("id").Find(&topics).Error; err != nil {
 			c.JSON(500, gin.H{"error": "Failed to fetch topics"})
 			return
 		}
@@ -28,7 +28,7 @@ func FetchPatternsByTopic() gin.HandlerFunc {
 
 		var patterns []Models.Pattern
 
-		if err := Database.DB.Where("topic_id = ?", topicID).Find(&patterns).Error; err != nil {
+		if err := Database.DB.Where("topic_id = ?", topicID).Order("id").Find(&patterns).Error; err != nil {
 			c.JSON(500, gin.H{"error": "Failed to fetch patterns for the topic"})
 			return
 		}
@@ -39,7 +39,7 @@ func FetchPatternsByTopic() gin.HandlerFunc {
 
 func FetchTopicWiseSheetsByPattern() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		patternID := c.Query("pattern_id");
+		patternID := c.Query("pattern_id")
 		userId, exists := c.Get("user_id")
 		if !exists {
 			c.JSON(401, gin.H{"error": "User ID not found in context"})
@@ -48,10 +48,10 @@ func FetchTopicWiseSheetsByPattern() gin.HandlerFunc {
 		uid := userId.(float64)
 
 		type TopicWiseQuestionsWithStatus struct {
-			ID  	  int    `json:"id"`
-			Title     string `json:"title"`
-			Status    string `json:"status"`
-			Link      string `json:"link"`
+			ID     int    `json:"id"`
+			Title  string `json:"title"`
+			Status string `json:"status"`
+			Link   string `json:"link"`
 		}
 
 		var result []TopicWiseQuestionsWithStatus
@@ -74,65 +74,63 @@ func FetchTopicWiseSheetsByPattern() gin.HandlerFunc {
 }
 
 func UpdateTopicWiseSheetStatus(id int, userID int, status string) {
-	
-		var existingStatus Models.UserQuestionStatusTopicWise
-		err := Database.DB.First(&existingStatus, "user_id = ? AND question_id = ?", userID, id).Error
 
-		if err != nil {
-			if err.Error() == "record not found" {
-				newStatus := Models.UserQuestionStatusTopicWise{
-					UserId:     userID,
-					QuestionId: id,
-					Status:     status,
-				}
-				if err := Database.DB.Create(&newStatus).Error; err != nil {
-					fmt.Println("Failed to create new status:", err)
-					return
-				}
-	           }
-           }
-		var user Models.User
-	   if err := Database.DB.First(&user, "user_id = ?", userID).Error; err == nil {
-	   	user.TotalSolved++
-	   	Database.DB.Save(&user)
-	   }   
-}
+	var existingStatus Models.UserQuestionStatusTopicWise
+	err := Database.DB.First(&existingStatus, "user_id = ? AND question_id = ?", userID, id).Error
 
-
-func UpdateTopicWiseSheetProgress(uid int, topicID int) {
-		var userStats Models.UserStatsTopicWise
-		if err := Database.DB.First(&userStats, "user_id = ?", uid).Error; err != nil {
-			if err.Error() == "record not found" {
-				newStats := Models.UserStatsTopicWise{
-					UserId:          uid,
-					OverallSolved:   1,
-					TopicWiseData: func() datatypes.JSON {
-						data, _ := json.Marshal(map[int]int{topicID: 1})
-						return datatypes.JSON(data)
-					}(),
-				}
-				if err := Database.DB.Create(&newStats).Error; err != nil {
-					fmt.Println("Failed to create new user stats:", err)
-					return
-				}
+	if err != nil {
+		if err.Error() == "record not found" {
+			newStatus := Models.UserQuestionStatusTopicWise{
+				UserId:     int(userID),
+				QuestionId: id,
+				Status:     status,
+			}
+			if err := Database.DB.Create(&newStatus).Error; err != nil {
+				fmt.Println("Failed to create new status:", err)
 				return
 			}
-			fmt.Println("Failed to fetch user stats:", err)
-		}
-
-		userStats.OverallSolved += 1
-		if userStats.TopicWiseData == nil {
-			data, _ := json.Marshal(map[int]int{})
-			userStats.TopicWiseData = datatypes.JSON(data)
-		}
-		userStats.TopicWiseData[topicID] += 1
-
-		if err := Database.DB.Save(&userStats).Error; err != nil {
-			fmt.Println("Failed to update user stats:", err)
-			return
 		}
 	}
+	var user Models.User
+	if err := Database.DB.First(&user, "user_id = ?", userID).Error; err == nil {
+		user.TotalSolved++
+		Database.DB.Save(&user)
+	}
+}
 
+func UpdateTopicWiseSheetProgress(uid int, topicID int) {
+	var userStats Models.UserStatsTopicWise
+	if err := Database.DB.First(&userStats, "user_id = ?", uid).Error; err != nil {
+		if err.Error() == "record not found" {
+			newStats := Models.UserStatsTopicWise{
+				UserId:        uid,
+				OverallSolved: 1,
+				TopicWiseData: func() datatypes.JSON {
+					data, _ := json.Marshal(map[int]int{topicID: 1})
+					return datatypes.JSON(data)
+				}(),
+			}
+			if err := Database.DB.Create(&newStats).Error; err != nil {
+				fmt.Println("Failed to create new user stats:", err)
+				return
+			}
+			return
+		}
+		fmt.Println("Failed to fetch user stats:", err)
+	}
+
+	userStats.OverallSolved += 1
+	if userStats.TopicWiseData == nil {
+		data, _ := json.Marshal(map[int]int{})
+		userStats.TopicWiseData = datatypes.JSON(data)
+	}
+	userStats.TopicWiseData[topicID] += 1
+
+	if err := Database.DB.Save(&userStats).Error; err != nil {
+		fmt.Println("Failed to update user stats:", err)
+		return
+	}
+}
 
 func FetchUserTopicWiseStats() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -141,7 +139,7 @@ func FetchUserTopicWiseStats() gin.HandlerFunc {
 			c.JSON(401, gin.H{"error": "User ID not found in context"})
 			return
 		}
-		uid := userId.(int)
+		uid := int(userId.(float64))
 
 		var userStats Models.UserStatsTopicWise
 		if err := Database.DB.First(&userStats, "user_id = ?", uid).Error; err != nil {
@@ -155,8 +153,3 @@ func FetchUserTopicWiseStats() gin.HandlerFunc {
 		c.JSON(200, userStats)
 	}
 }
-
-		
-		
-
-		

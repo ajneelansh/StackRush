@@ -16,7 +16,8 @@ import (
 func main(){
 
 	Database.InitDb()
-
+// register public routes before applying authentication middleware
+	
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error Loading .env ")
@@ -36,7 +37,7 @@ func main(){
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}));
-
+    Routes.PublicUserRoute(router)
 	Routes.AuthRoute(router)
 	Routes.AdminRoutes(router)
 	Routes.UserRoute(router)

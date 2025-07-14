@@ -23,7 +23,7 @@ type User struct {
 }
 
 type UserStats struct {
-	UserId            int    `gorm:"primaryKey"`  
+	UserId            int    `gorm:"primaryKey"` 
 	TotalSolved       int    `json:"total_solved" gorm:"default:0"`
 	SolvedByRating   datatypes.JSON   `gorm:"type:json"`
 	ActivityLog       datatypes.JSON   `gorm:"type:json"`

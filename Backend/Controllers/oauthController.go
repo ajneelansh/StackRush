@@ -229,7 +229,7 @@ func GetUserInfo() gin.HandlerFunc {
 
 func GetUserByUsername() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		username := c.Param("username")
+		username := c.Query("username")
 		if username == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
 			return

@@ -21,10 +21,12 @@ func UserRoute(incomingRoutes *gin.Engine){
 	incomingRoutes.GET("/gettopicwisequestions", Controllers.FetchTopicWiseSheetsByPattern())
 	incomingRoutes.GET("/gettopicwiseprogress", Controllers.FetchUserTopicWiseStats())
 	incomingRoutes.POST("/verifytopicwise", Controllers.VerifySubmissionTopicwise())
-	}
+}
 
-func PublicUserRoute(incomingRoutes *gin.Engine){
-		incomingRoutes.GET("/getuserbyusername", Controllers.GetUserByUsername())
-	}
+// PublicUserRoute should be registered on the main router *before* applying RequireAuth middleware to other routes.
+func PublicUserRoute(ig *gin.Engine){
+	ig.GET("/getuserbyusername", Controllers.GetUserByUsername())
+	ig.GET("/getheatmapbyusername", Controllers.GetHeatmapByUsername())
+}
 
 
