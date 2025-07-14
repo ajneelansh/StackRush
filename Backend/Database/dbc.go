@@ -61,6 +61,12 @@ func InitDb(){
     if patternCount == 0 {
 		db.Exec(`ALTER SEQUENCE patterns_id_seq RESTART WITH 101`)
 	}
+     if err := DB.AutoMigrate(&Models.UserQuestionStatusTopicWise{}); err != nil {
+    log.Fatal("Error migrating UserQuestionStatusTopicWise model:", err)
+   }
+    if err := DB.AutoMigrate(&Models.UserStatsTopicWise{}); err != nil {
+    log.Fatal("Error migrating TopicWiseStats model:", err)
+    }
    
    fmt.Println("DB connected")
 }

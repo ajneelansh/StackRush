@@ -15,11 +15,11 @@ type User struct {
 	College 		 string    `json:"college"`
 	Batch			 string    `json:"batch"`
 	Location         string    `json:"location"`
-	Username		 string    `json:"username" gorm:"unique"`
-	LeetcodeUsername string    `json:"leetcode_username" gorm:"unique"`
-	CodeforcesHandle string    `json:"codeforces_handle" gorm:"unique"`
+	Username		 string    `json:"username" gorm:"unique;primaryKey"`
+	LeetcodeUsername string    `json:"leetcode" gorm:"unique"`
+	CodeforcesHandle string    `json:"codeforces" gorm:"unique"`
 	Bio			     string    `json:"bio"`
-	
+	TotalSolved	  int       `json:"total_solved" gorm:"default:0"`
 }
 
 type UserStats struct {
@@ -36,6 +36,21 @@ type UserQuestionStatus struct {
 
 	User     User     `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
     Question Questions`gorm:"foreignKey:QuestionId;constraint:OnDelete:CASCADE"`
+}
+
+type UserQuestionStatusTopicWise struct {
+	UserId          int   `gorm:"primaryKey"`
+	QuestionId      int   `gorm:"primaryKey"`
+	Status     string    `gorm:"type:varchar(20)"`
+
+	User	 User     `gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
+	TopicWiseSheet TopicWiseSheet `gorm:"foreignKey:QuestionId;constraint:OnDelete:CASCADE"`
+}
+
+type UserStatsTopicWise struct {
+	UserId            int    `gorm:"primaryKey"`  
+	OverallSolved       int    `json:"overall_solved" gorm:"default:0"`
+	TopicWiseData   datatypes.JSON   `gorm:"type:json"`
 }
 
 

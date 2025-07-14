@@ -94,7 +94,7 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return
 	}
     c.SetCookie("token", jwtToken, 3600*24, "/", "localhost", false, true)
-	c.Redirect(http.StatusFound, "https://codehurdle.com/dashboard")
+	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
 	}
 }
 
@@ -118,10 +118,14 @@ func UpdateProfile() gin.HandlerFunc {
 		}
 
 		var body struct {
-			Name    string `json:"name"`
-			College string `json:"college"`
-			Batch   string `json:"batch"`
-			Location string `json:"location"`
+			Name              string `json:"name"`
+			College           string `json:"college"`
+			Batch             string `json:"batch"`
+			Location          string `json:"location"`
+			Username          string `json:"username"`
+			LeetcodeUsername  string `json:"leetcode"`
+			CodeforcesHandle  string `json:"codeforces"`
+			Bio               string `json:"bio"`
 		}
 
 		if err := c.ShouldBindJSON(&body); err != nil {
@@ -129,7 +133,6 @@ func UpdateProfile() gin.HandlerFunc {
 			return
 		}
 
-		
 		var user Models.User
 		if err := Database.DB.First(&user, uid).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -140,10 +143,21 @@ func UpdateProfile() gin.HandlerFunc {
 			return
 		}
 
+		// Check if the username already exists for another user
+		var existingUser Models.User
+		if err := Database.DB.Where("username = ? AND user_id != ?", body.Username, uid).First(&existingUser).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+			return
+		}
+
 		user.Name = body.Name
 		user.College = body.College
 		user.Batch = body.Batch
 		user.Location = body.Location
+		user.Bio = body.Bio
+		user.Username = body.Username
+		user.LeetcodeUsername = body.LeetcodeUsername
+		user.CodeforcesHandle = body.CodeforcesHandle
 
 		if err := Database.DB.Save(&user).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
@@ -205,6 +219,45 @@ func GetUserInfo() gin.HandlerFunc {
 			"college":        user.College,
 			"batch":          user.Batch,
 			"location":       user.Location,
+			"username":       user.Username,
+			"leetcode":       user.LeetcodeUsername,
+			"codeforces":     user.CodeforcesHandle,
+			"bio":            user.Bio,
 		})
+	}
+}
+
+func GetUserByUsername() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Param("username")
+		if username == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
+			return
+		}
+
+		var user Models.User
+		if err := Database.DB.Where("username = ?", username).First(&user).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"name":           user.Name,
+			"email":          user.Email,
+			"profile_picture": user.ProfilePicture,
+			"college":        user.College,
+			"batch":          user.Batch,
+			"location":       user.Location,
+			"username":       user.Username,
+			"leetcode":       user.LeetcodeUsername,
+			"codeforces":     user.CodeforcesHandle,
+			"bio":            user.Bio,
+			"total_solved":   user.TotalSolved,
+		})
+
 	}
 }

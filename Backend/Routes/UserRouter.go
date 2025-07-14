@@ -12,10 +12,19 @@ func UserRoute(incomingRoutes *gin.Engine){
 	incomingRoutes.GET("/getquestions",Controllers.GetQuestions())
 	incomingRoutes.GET("/getquestions:question_id",Controllers.GetQuestionById())
 	incomingRoutes.GET("/getprogress",Controllers.GetProgressData())
-	incomingRoutes.POST("/incrementheatmap", Controllers.IncrementHeatmapData())
 	incomingRoutes.GET("/getheatmap", Controllers.GetHeatmap())
 	incomingRoutes.GET("/getuser", Controllers.GetUserInfo())
-	incomingRoutes.POST("/updatequestionstatus", Controllers.UpdateQuestionStatus())
 	incomingRoutes.POST("/updateprofile", Controllers.UpdateProfile())
 	incomingRoutes.POST("/verify", Controllers.VerifySubmission())
-}
+	incomingRoutes.GET("/gettopics", Controllers.FetchTopics())
+	incomingRoutes.GET("/getpatterns", Controllers.FetchPatternsByTopic())
+	incomingRoutes.GET("/gettopicwisequestions", Controllers.FetchTopicWiseSheetsByPattern())
+	incomingRoutes.GET("/gettopicwiseprogress", Controllers.FetchUserTopicWiseStats())
+	incomingRoutes.POST("/verifytopicwise", Controllers.VerifySubmissionTopicwise())
+	}
+
+func PublicUserRoute(incomingRoutes *gin.Engine){
+		incomingRoutes.GET("/getuserbyusername", Controllers.GetUserByUsername())
+	}
+
+

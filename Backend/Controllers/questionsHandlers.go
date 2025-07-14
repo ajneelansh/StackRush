@@ -4,7 +4,6 @@ import (
 	"Backend/Database"
 	"Backend/Models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -44,7 +43,7 @@ func GetQuestions() gin.HandlerFunc{
 		LEFT JOIN user_question_statuses uqs
 		       ON q.question_id = uqs.question_id AND uqs.user_id = ?
 		WHERE q.rating BETWEEN ? AND ?
-		ORDER BY q.rating
+		ORDER BY q.question_id
 		LIMIT ? OFFSET ?
 		`
 
@@ -52,122 +51,60 @@ func GetQuestions() gin.HandlerFunc{
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch questions"})
 			return
 		}
-
 		c.JSON(http.StatusOK, results)
 	}
 }
 
-type StatusUpdateInput struct {
-	QuestionId int    `json:"question_id"` 
-	Status     string `json:"status"`      
+
+func UpdateQuestionStatus(userID int,QuestionId int, status string) {
+		
+	var existingStatus Models.UserQuestionStatus
+	err := Database.DB.First(&existingStatus, "user_id = ? AND question_id = ?", userID, QuestionId).Error
+
+	if err == nil {
+		existingStatus.Status = status
+		Database.DB.Save(&existingStatus)
+	} else {
+		newStatus := Models.UserQuestionStatus{
+			UserId:    userID,
+			QuestionId: QuestionId,
+			Status:     status,
+		}
+		Database.DB.Create(&newStatus)
+	}
+	var user Models.User
+	if err := Database.DB.First(&user, "user_id = ?", userID).Error; err == nil {
+		user.TotalSolved++
+		Database.DB.Save(&user)
+	}
+
 }
 
-func UpdateQuestionStatus() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var input StatusUpdateInput
+func UpdateProgressData(userID int, rating int) {
+	var userStats Models.UserStats
 
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-			return
+	err := Database.DB.First(&userStats, "user_id = ?", userID).Error
+	if err == nil {
+		
+		solvedByRating := make(map[string]int)
+		if userStats.SolvedByRating != nil {
+			json.Unmarshal(userStats.SolvedByRating, &solvedByRating)
 		}
+		solvedByRating[strconv.Itoa(rating)]++
+		updatedSolvedByRating, _ := json.Marshal(solvedByRating)
+		userStats.SolvedByRating = datatypes.JSON(updatedSolvedByRating)
+		userStats.TotalSolved++
+		Database.DB.Save(&userStats)
+	} else {
 
-		userIDRaw, exists := c.Get("user_id")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-			return
+		solvedByRating := map[string]int{strconv.Itoa(rating): 1}
+		solvedByRatingJSON, _ := json.Marshal(solvedByRating)
+		newUserStats := Models.UserStats{
+			UserId:         userID,
+			TotalSolved:    1,
+			SolvedByRating: datatypes.JSON(solvedByRatingJSON),
 		}
-		userID := userIDRaw.(float64)
-	var existingStatus Models.UserQuestionStatus
-	err := Database.DB.First(&existingStatus, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
-	if err != nil && err.Error() != "record not found" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch existing status"})
-		return
-	}
-
-	if existingStatus.Status == "Solved" && input.Status != "Solved" {
-		var userprogress Models.UserStats
-		var solvedByRatingMap map[string]int
-		var question Models.Questions
-
-		err2 := Database.DB.First(&userprogress, "user_id = ?", userID).Error
-		err3 := Database.DB.First(&question, "question_id = ?", input.QuestionId).Error
-		if err2 != nil || err3 != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user progress or question"})
-			return
-		}
-
-		if err := json.Unmarshal(userprogress.SolvedByRating, &solvedByRatingMap); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse SolvedByRating"})
-			return
-		}
-
-		ratingKey := fmt.Sprintf("%d", question.Rating)
-		if solvedByRatingMap[ratingKey] > 0 {
-			solvedByRatingMap[ratingKey] -= 1
-		}
-
-		updatedJSON, err := json.Marshal(solvedByRatingMap)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update SolvedByRating"})
-			return
-		}
-
-		userprogress.SolvedByRating = datatypes.JSON(updatedJSON)
-		if err := Database.DB.Save(&userprogress).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save progress"})
-			return
-		}
-	} else if input.Status == "Solved" {
-		var userprogress Models.UserStats
-		var solvedByRatingMap map[string]int
-		var question Models.Questions
-
-		err2 := Database.DB.First(&userprogress, "user_id = ?", userID).Error
-		err3 := Database.DB.First(&question, "question_id = ?", input.QuestionId).Error
-		if err2 != nil || err3 != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user progress or question"})
-			return
-		}
-
-		if err := json.Unmarshal(userprogress.SolvedByRating, &solvedByRatingMap); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse SolvedByRating"})
-			return
-		}
-
-		ratingKey := fmt.Sprintf("%d", question.Rating)
-		solvedByRatingMap[ratingKey] += 1
-
-		updatedJSON, err := json.Marshal(solvedByRatingMap)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update SolvedByRating"})
-			return
-		}
-
-		userprogress.SolvedByRating = datatypes.JSON(updatedJSON)
-		if err := Database.DB.Save(&userprogress).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save progress"})
-			return
-		}
-	}
-
-	var existing Models.UserQuestionStatus
-		err4:= Database.DB.First(&existing, "user_id = ? AND question_id = ?", userID, input.QuestionId).Error
-
-		if err4 == nil {
-			
-			existing.Status = input.Status
-			Database.DB.Save(&existing)
-
-		} else {
-			newStatus := Models.UserQuestionStatus{
-				UserId:    int(userID),
-				QuestionId: input.QuestionId,
-				Status:     input.Status,
-			}
-			Database.DB.Create(&newStatus)
-		}
-
-		c.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
+		Database.DB.Create(&newUserStats)
 	}
 }
 

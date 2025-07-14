@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -24,7 +25,7 @@ type Response struct {
 
 func fetchRecentLeetCodeSubmissions(username string) []string {
 	leetcodeURL := "https://leetcode.com/graphql/"
-	
+
 	query := `
 		query recentSubmissions($username: String!) {
 			recentSubmissionList(username: $username) {
@@ -36,13 +37,13 @@ func fetchRecentLeetCodeSubmissions(username string) []string {
 		"query": query,
 		"variables": map[string]string{
 			"username": username,
-			"limit": "5",
+			"limit":    "5",
 		},
 	}
-	
-	bodyJSON,err := json.Marshal(body)
-	if err != nil {	
-	  fmt.Println("Error marshalling JSON:", err)
+
+	bodyJSON, err := json.Marshal(body)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
 	}
 
 	req, err := http.NewRequest("POST", leetcodeURL, bytes.NewBuffer(bodyJSON))
@@ -120,7 +121,6 @@ func fetchRecentCodeforcesSubmissions(handle string, limit int) ([]string, error
 	return keys, nil
 }
 
-
 func parseCodeforcesTitle(title string) (contestID int, index string, ok bool) {
 	title = strings.TrimSpace(strings.ToLower(title))
 	if !strings.HasPrefix(title, "codeforces problem ") {
@@ -131,12 +131,12 @@ func parseCodeforcesTitle(title string) (contestID int, index string, ok bool) {
 		return 0, "", false
 	}
 
-	problemCode := parts[2] 
+	problemCode := parts[2]
 	n := len(problemCode)
 	if n < 2 {
 		return 0, "", false
 	}
-	
+
 	numPart := problemCode[:n-1]
 	letterPart := problemCode[n-1:]
 
@@ -150,9 +150,19 @@ func parseCodeforcesTitle(title string) (contestID int, index string, ok bool) {
 func VerifySubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
-			Username string `json:"username"`
-			Handle   string `json:"handle"`  
-			Title    string `json:"title"`
+			LcUsername string `json:"lcusername"`
+			CfHandle   string `json:"cfhandle"`
+			Title      string `json:"title"`
+			QuestionId int    `json:"question_id"`
+			Rating     int    `json:"rating"`
+			Status     string `json:"status"`
+			Date       string `json:"date"`
+		}
+		userID, exists := c.Get("user_id")
+		uid := int(userID.(float64))
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -162,30 +172,41 @@ func VerifySubmission() gin.HandlerFunc {
 		title := strings.TrimSpace(req.Title)
 		inputLower := strings.ToLower(title)
 
-      if contestID, index, isCF := parseCodeforcesTitle(title); isCF {
-	expected := fmt.Sprintf("%d-%s", contestID, index)
-	keys, err := fetchRecentCodeforcesSubmissions(req.Handle, 2)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch Codeforces submissions"})
-		return
-	}
-	for _, k := range keys {
-		if k == expected {
-		_ = IncrementHeatmapData()
-			c.JSON(http.StatusOK, gin.H{"matched": true})
+		if contestID, index, isCF := parseCodeforcesTitle(title); isCF {
+			expected := fmt.Sprintf("%d-%s", contestID, index)
+			keys, err := fetchRecentCodeforcesSubmissions(req.CfHandle, 2)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch Codeforces submissions"})
+				return
+			}
+			for _, k := range keys {
+				if k == expected {
+					go func() {
+						if err := IncrementHeatmapData(uid, req.Date); err != nil {
+							fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
+						}
+					}()
+					go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
+					go UpdateProgressData(uid, req.Rating)
+					c.JSON(http.StatusOK, gin.H{"matched": true})
+					return
+				}
+			}
+			c.JSON(http.StatusOK, gin.H{"matched": false})
 			return
 		}
-	}
-	c.JSON(http.StatusOK, gin.H{"matched": false})
-	return
-}
 
-		
-		submissions:= fetchRecentLeetCodeSubmissions(req.Username)
+		submissions := fetchRecentLeetCodeSubmissions(req.LcUsername)
 
 		for _, sub := range submissions {
 			if strings.ToLower(sub) == inputLower {
-			_ = IncrementHeatmapData()
+				go func() {
+					if err := IncrementHeatmapData(uid, req.Date); err != nil {
+						fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
+					}
+				}()
+				go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
+				go UpdateProgressData(uid, req.Rating)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return
 			}
@@ -194,5 +215,70 @@ func VerifySubmission() gin.HandlerFunc {
 	}
 }
 
+func VerifySubmissionTopicwise() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			LcUsername string `json:"lcusername"`
+			CfHandle   string `json:"cfhandle"`
+			Title      string `json:"title"`
+			QuestionId int    `json:"question_id"`
+			TopicID     int    `json:"topic_id"`
+			Status     string `json:"status"`
+			Date       string `json:"date"`
+		}
+		userID, exists := c.Get("user_id")
+		uid := int(userID.(float64))
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
 
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			return
+		}
+		title := strings.TrimSpace(req.Title)
+		inputLower := strings.ToLower(title)
 
+		if contestID, index, isCF := parseCodeforcesTitle(title); isCF {
+			expected := fmt.Sprintf("%d-%s", contestID, index)
+			keys, err := fetchRecentCodeforcesSubmissions(req.CfHandle, 2)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch Codeforces submissions"})
+				return
+			}
+			for _, k := range keys {
+				if k == expected {
+					go func() {
+						if err := IncrementHeatmapData(uid, req.Date); err != nil {
+							fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
+						}
+					}()
+					go UpdateTopicWiseSheetStatus(uid, req.QuestionId, req.Status)
+					go UpdateTopicWiseSheetProgress(uid, req.TopicID)
+					c.JSON(http.StatusOK, gin.H{"matched": true})
+					return
+				}
+			}
+			c.JSON(http.StatusOK, gin.H{"matched": false})
+			return
+		}
+
+		submissions := fetchRecentLeetCodeSubmissions(req.LcUsername)
+
+		for _, sub := range submissions {
+			if strings.ToLower(sub) == inputLower {
+				go func() {
+					if err := IncrementHeatmapData(uid, req.Date); err != nil {
+						fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
+					}
+				}()
+				go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
+				go UpdateProgressData(uid, req.TopicID)
+				c.JSON(http.StatusOK, gin.H{"matched": true})
+				return
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"matched": false})
+	}
+}

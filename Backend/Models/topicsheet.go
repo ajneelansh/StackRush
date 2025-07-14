@@ -3,6 +3,7 @@ package Models
 type Topics struct {
 	ID       uint      `gorm:"primaryKey"`
 	Name     string    `gorm:"unique;not null"`
+	TotalQuestions int       `gorm:"default:0"`
 	Patterns []Pattern `gorm:"foreignKey:TopicID;constraint:OnDelete:CASCADE"`
 }
 
