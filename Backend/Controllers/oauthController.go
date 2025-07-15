@@ -93,8 +93,8 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "JWT generation failed"})
 		return
 	}
-    c.SetCookie("token", jwtToken, 3600*24, "/", "localhost", false, true)
-	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
+    c.SetCookie("token", jwtToken, 3600*24, "/", "codehurdle.com", false, true)
+	c.Redirect(http.StatusFound, "https://codehurdle.com/dashboard")
 	}
 }
 
