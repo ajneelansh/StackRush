@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func IncrementHeatmapData(userID int, date string)  {
+func IncrementHeatmapData(userID int, date string) {
 
 	var stats Models.UserStats
 	err := Database.DB.Transaction(func(tx *gorm.DB) error {
@@ -23,21 +23,19 @@ func IncrementHeatmapData(userID int, date string)  {
 			return err
 		}
 
-	logMap := map[string]int{}
-	_ = json.Unmarshal(stats.ActivityLog, &logMap)
-	logMap[date]++
+		logMap := map[string]int{}
+		_ = json.Unmarshal(stats.ActivityLog, &logMap)
+		logMap[date]++
 
-	newLog, _ := json.Marshal(logMap)
-	return tx.Model(&stats).Update("activity_log", newLog).Error
-})
+		newLog, _ := json.Marshal(logMap)
+		return tx.Model(&stats).Update("activity_log", newLog).Error
+	})
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error incrementing heatmap data: %v\n", err)
 	}
 
 }
-
-
 
 func GetHeatmap() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -71,7 +69,7 @@ func GetHeatmapByUsername() gin.HandlerFunc {
 		}
 
 		var user Models.User
-		if err := Database.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		if err := Database.DB.Where("TRIM(username) = ?", username).First(&user).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}

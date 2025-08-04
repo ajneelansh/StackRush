@@ -184,7 +184,7 @@ func VerifySubmission() gin.HandlerFunc {
 					
 					go IncrementHeatmapData(uid, req.Date)
 					
-					go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
+					UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 					go UpdateProgressData(uid, req.Rating)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
 					return
@@ -201,7 +201,7 @@ func VerifySubmission() gin.HandlerFunc {
 				
 				go IncrementHeatmapData(uid, req.Date)
 				
-				go UpdateQuestionStatus(uid, req.QuestionId, req.Status)
+				UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 				go UpdateProgressData(uid, req.Rating)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return
@@ -248,7 +248,7 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 					
 					go IncrementHeatmapData(uid, req.Date)
 					
-					go UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
+					UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
 					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
 					return
@@ -265,7 +265,7 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 				
 				go IncrementHeatmapData(uid, req.Date)
 				
-				go UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
+				 UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
 					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return

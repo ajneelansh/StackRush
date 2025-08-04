@@ -120,11 +120,24 @@ func UpdateTopicWiseSheetProgress(uid int, topicID int) {
 	}
 
 	userStats.OverallSolved += 1
-	if userStats.TopicWiseData == nil {
-		data, _ := json.Marshal(map[int]int{})
-		userStats.TopicWiseData = datatypes.JSON(data)
+	
+	var topicData map[int]int
+	if userStats.TopicWiseData != nil {
+		if err := json.Unmarshal(userStats.TopicWiseData, &topicData); err != nil {
+			topicData = make(map[int]int) 
+		}
+	} else {
+		topicData = make(map[int]int)
 	}
-	userStats.TopicWiseData[topicID] += 1
+
+	topicData[topicID] += 1
+
+	updatedData, err := json.Marshal(topicData)
+	if err != nil {
+		fmt.Println("Failed to marshal topic data:", err)
+		return
+	}
+	userStats.TopicWiseData = datatypes.JSON(updatedData)
 
 	if err := Database.DB.Save(&userStats).Error; err != nil {
 		fmt.Println("Failed to update user stats:", err)

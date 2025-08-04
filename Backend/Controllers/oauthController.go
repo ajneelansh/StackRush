@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -93,8 +94,8 @@ if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "JWT generation failed"})
 		return
 	}
-    c.SetCookie("token", jwtToken, 3600*24, "/", "codehurdle.com", false, true)
-	c.Redirect(http.StatusFound, "https://codehurdle.com/dashboard")
+    c.SetCookie("token", jwtToken, 3600*24, "/", "localhost", false, true)
+	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
 	}
 }
 
@@ -143,7 +144,7 @@ func UpdateProfile() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the username already exists for another user
+		
 		var existingUser Models.User
 		if err := Database.DB.Where("username = ? AND user_id != ?", body.Username, uid).First(&existingUser).Error; err == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
@@ -230,6 +231,7 @@ func GetUserInfo() gin.HandlerFunc {
 func GetUserByUsername() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := c.Query("username")
+		username = strings.TrimSpace(username)
 		if username == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
 			return
