@@ -1,25 +1,31 @@
 package Models
 
 import (
-    "gorm.io/datatypes"
+	"time"
+
+	"gorm.io/datatypes"
 )
 
 
 type User struct {
-	UserId           int       `json:"user_id" gorm:"primaryKey;autoIncrement"`
-	OAuthProvider    string    `json:"oauth_provider"`
-	OAuthID          string    `json:"oauth_id" gorm:"unique"`
-	Email            string    `json:"email_id"`
-	Name             string    `json:"name"`
-	ProfilePicture   string    `json:"profile_picture"`
-	College 		 string    `json:"college"`
-	Batch			 string    `json:"batch"`
-	Location         string    `json:"location"`
-	Username		 string    `json:"username"`
-	LeetcodeUsername string    `json:"leetcode"`
-	CodeforcesHandle string    `json:"codeforces" gorm:"unique"`
-	Bio			     string    `json:"bio"`
-	TotalSolved	  int       `json:"total_solved" gorm:"default:0"`
+	UserId                int            `json:"user_id" gorm:"primaryKey;autoIncrement"`
+	OAuthProvider         string         `json:"oauth_provider"`
+	OAuthID               string         `json:"oauth_id" gorm:"uniqueIndex"` 
+	Email                 string         `json:"email_id"`
+	Name                  string         `json:"name"`
+	ProfilePicture        string         `json:"profile_picture"`
+	College               string         `json:"college"`
+	Batch                 string         `json:"batch"`
+	Location              string         `json:"location"`
+	Username              string         `json:"username"`
+	LeetcodeUsername      string         `json:"leetcode"`
+	CodeforcesHandle      string         `json:"codeforces"`
+	Bio                   string         `json:"bio"`
+	TotalSolved           int            `json:"total_solved" gorm:"default:0"`
+	RefreshToken          *string        `json:"-" gorm:"type:text;uniqueIndex"` 
+	RefreshTokenExpiresAt *time.Time     `json:"-"`                             
+	CreatedAt             time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt             time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 type UserStats struct {
