@@ -4,18 +4,14 @@ import (
 	"Backend/Database"
 	"Backend/Helpers"
 	"Backend/Models"
-	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -23,7 +19,35 @@ import (
 
 func GoogleLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		
+		accessToken, err := c.Cookie("access_token")
+		if err == nil {
+			if _, err := Helpers.ValidateAccessToken(accessToken); err == nil {
+				c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
+				return
+			}
+		}
+
+		refreshToken, err := c.Cookie("refresh_token")
+		if err == nil {
+			if claims, err := Helpers.ValidateRefreshToken(refreshToken); err == nil {
+				var user Models.User
+				db := Database.DB
+				if err := db.Where("user_id = ?", claims.UserID).First(&user).Error; err == nil {
+					if user.RefreshToken != nil && *user.RefreshToken == refreshToken && user.RefreshTokenExpiresAt.After(time.Now()) {
+						newAccessToken, newRefreshToken, newAccessExp, newRefreshExp, jwtErr := Helpers.GenerateAccessAndRefreshTokens(user.UserId)
+						if jwtErr == nil {
+							user.RefreshToken = &newRefreshToken
+							user.RefreshTokenExpiresAt = &newRefreshExp
+							db.Save(&user)
+							setAuthCookies(c, newAccessToken, newAccessExp, newRefreshToken, newRefreshExp)
+							c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
+							return
+						}
+					}
+				}
+			}
+		}
+
 		state := Helpers.GenerateRandomString(32)
 		url := Helpers.GoogleOAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 		c.Redirect(http.StatusFound, url)
@@ -33,16 +57,15 @@ func GoogleLogin() gin.HandlerFunc {
 func OAuthCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := c.Query("code")
-	 
+
 		if code == "" {
 			log.Println("OAuthCallback: Code not found in query parameters.")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization code not found."})
 			return
 		}
 
-		db := Database.DB 
+		db := Database.DB
 
-		
 		token, err := Helpers.GoogleOAuthConfig.Exchange(c.Request.Context(), code)
 		if err != nil {
 			log.Printf("OAuthCallback: Token exchange failed: %v", err)
@@ -113,8 +136,8 @@ func OAuthCallback() gin.HandlerFunc {
 				return
 			}
 
-			user.RefreshToken = &refreshToken         
-			user.RefreshTokenExpiresAt = &refreshExp 
+			user.RefreshToken = &refreshToken
+			user.RefreshTokenExpiresAt = &refreshExp
 
 			if err := db.WithContext(c.Request.Context()).Create(&user).Error; err != nil {
 				log.Printf("OAuthCallback: User creation failed: %v", err)
@@ -130,7 +153,7 @@ func OAuthCallback() gin.HandlerFunc {
 			}
 			if err := db.WithContext(c.Request.Context()).Create(&userStats).Error; err != nil {
 				log.Printf("OAuthCallback: UserStats creation failed for user %d: %v", user.UserId, err)
-				
+
 			}
 			setAuthCookies(c, accessToken, accessExp, refreshToken, refreshExp)
 
@@ -149,8 +172,8 @@ func OAuthCallback() gin.HandlerFunc {
 				return
 			}
 
-			user.RefreshToken = &refreshToken         
-			user.RefreshTokenExpiresAt = &refreshExp 
+			user.RefreshToken = &refreshToken
+			user.RefreshTokenExpiresAt = &refreshExp
 
 			if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
 				log.Printf("OAuthCallback: Failed to update user %d: %v", user.UserId, err)
@@ -179,15 +202,13 @@ func RefreshAccessToken() gin.HandlerFunc {
 		if err != nil {
 			log.Printf("RefreshAccessToken: Invalid refresh token: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token. Please log in again."})
-			// Consider clearing expired/invalid refresh token cookie here
 			c.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 			return
 		}
 
 		db := Database.DB
 		var user Models.User
-		// Verify that the refresh token stored in the database matches the one provided.
-		// Use db.WithContext(c.Request.Context()) for GORM operations.
+
 		result := db.WithContext(c.Request.Context()).Where("user_id = ?", claims.UserID).First(&user)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -200,22 +221,10 @@ func RefreshAccessToken() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the refresh token matches the one stored in the database and is not expired
 		if user.RefreshToken == nil || *user.RefreshToken != refreshTokenString {
 			log.Printf("RefreshAccessToken: Provided refresh token does not match stored token for user %d.", user.UserId)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token. Please log in again."})
-			// Invalidate the stored token if a mismatch occurs (potential token theft)
-			user.RefreshToken = nil
-			user.RefreshTokenExpiresAt = nil
-			db.WithContext(c.Request.Context()).Save(&user) // Save to clear the token
-			c.SetCookie("refresh_token", "", -1, "/", "localhost", false, true) // Clear client cookie
-			return
-		}
 
-		if user.RefreshTokenExpiresAt == nil || user.RefreshTokenExpiresAt.Before(time.Now()) {
-			log.Printf("RefreshAccessToken: Refresh token for user %d has expired.", user.UserId)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token has expired. Please log in again."})
-			// Clear expired refresh token from DB and client
 			user.RefreshToken = nil
 			user.RefreshTokenExpiresAt = nil
 			db.WithContext(c.Request.Context()).Save(&user)
@@ -223,7 +232,16 @@ func RefreshAccessToken() gin.HandlerFunc {
 			return
 		}
 
-		
+		if user.RefreshTokenExpiresAt == nil || user.RefreshTokenExpiresAt.Before(time.Now()) {
+			log.Printf("RefreshAccessToken: Refresh token for user %d has expired.", user.UserId)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token has expired. Please log in again."})
+			user.RefreshToken = nil
+			user.RefreshTokenExpiresAt = nil
+			db.WithContext(c.Request.Context()).Save(&user)
+			c.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
+			return
+		}
+
 		newAccessToken, newRefreshToken, newAccessExp, newRefreshExp, jwtErr := Helpers.GenerateAccessAndRefreshTokens(user.UserId)
 		if jwtErr != nil {
 			log.Printf("RefreshAccessToken: Failed to generate new tokens for user %d: %v", user.UserId, jwtErr)
@@ -231,7 +249,6 @@ func RefreshAccessToken() gin.HandlerFunc {
 			return
 		}
 
-		
 		user.RefreshToken = &newRefreshToken
 		user.RefreshTokenExpiresAt = &newRefreshExp
 		if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
@@ -240,13 +257,72 @@ func RefreshAccessToken() gin.HandlerFunc {
 			return
 		}
 
-		
 		setAuthCookies(c, newAccessToken, newAccessExp, newRefreshToken, newRefreshExp)
 
 		c.JSON(http.StatusOK, gin.H{"message": "Access token refreshed successfully."})
 	}
 }
 
+func Logout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := Database.DB
+		userID, exists := c.Get("user_id") 
+		if exists {
+			var id int
+			switch v := userID.(type) {
+			case float64:
+				id = int(v)
+			case int:
+				id = v
+			default:
+				log.Printf("Logout: Unexpected type for user_id in context: %T", v)
+				id = 0
+			}
+
+			if id != 0 {
+				var user Models.User
+				result := db.WithContext(c.Request.Context()).Where("user_id = ?", id).First(&user)
+				if result.Error == nil { 
+					user.RefreshToken = nil
+					user.RefreshTokenExpiresAt = nil
+					if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
+						log.Printf("Logout: Failed to clear refresh token for user %d: %v", id, err)
+					} else {
+						log.Printf("Logout: Refresh token cleared from DB for user %d.", id)
+					}
+				} else if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					log.Printf("Logout: Database error finding user %d for logout: %v", id, result.Error)
+				}
+			}
+		} else {
+			log.Println("Logout: UserID not found in context. Proceeding to clear cookies.")
+		}
+
+		isProduction := gin.Mode() == gin.ReleaseMode
+
+		c.SetCookie(
+			"access_token",
+			"",
+			-1,           // MaxAge: -1 immediately deletes the cookie
+			"/",          // Path: Must match the path used when setting the cookie
+			"localhost",  // Domain: Must match the domain used when setting the cookie
+			isProduction, // Secure: Should be true in production
+			true,         // HttpOnly: Must match the HttpOnly setting
+		)
+
+		c.SetCookie(
+			"refresh_token",
+			"",
+			-1,
+			"/",
+			"localhost",
+			isProduction, 
+			true,
+		)
+
+		c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully."})
+	}
+}
 
 func setAuthCookies(c *gin.Context, accessToken string, accessExp time.Time, refreshToken string, refreshExp time.Time) {
 	accessMaxAge := int(time.Until(accessExp).Seconds())
@@ -254,10 +330,10 @@ func setAuthCookies(c *gin.Context, accessToken string, accessExp time.Time, ref
 		"access_token",
 		accessToken,
 		accessMaxAge,
-		"/",         
-		"localhost",  
-		true,         
-		true,         
+		"/",
+		"localhost",
+		true,
+		true,
 	)
 	log.Printf("Set access_token cookie, expires in %d seconds", accessMaxAge)
 
@@ -267,10 +343,9 @@ func setAuthCookies(c *gin.Context, accessToken string, accessExp time.Time, ref
 		refreshToken,
 		refreshMaxAge,
 		"/",
-		"localhost", 
-		true,        
-		true,   
+		"localhost",
+		true,
+		true,
 	)
 	log.Printf("Set refresh_token cookie, expires in %d seconds", refreshMaxAge)
 }
-

@@ -16,7 +16,6 @@ import (
 func main(){
 
 	Database.InitDb()
-// register public routes before applying authentication middleware
 	
 	err := godotenv.Load()
 	if err != nil {

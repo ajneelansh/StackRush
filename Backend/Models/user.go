@@ -26,6 +26,7 @@ type User struct {
 	RefreshTokenExpiresAt *time.Time     `json:"-"`                             
 	CreatedAt             time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt             time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	Coins                 int            `json:"coins" gorm:"default:0"`
 }
 
 type UserStats struct {

@@ -24,7 +24,7 @@ func GetQuestions() gin.HandlerFunc{
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-		userID := userIDValue.(float64)
+		userID := userIDValue
 
 		type QuestionWithStatus struct {
 			QuestionID     int    `json:"question_id"`

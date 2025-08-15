@@ -6,11 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	
+	"sort"
 	"strconv"
 	"strings"
+	"time"
+
+	"Backend/Database"
+	"Backend/Models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type submissionTitle struct {
@@ -159,9 +164,13 @@ func VerifySubmission() gin.HandlerFunc {
 			Date       string `json:"date"`
 		}
 		userID, exists := c.Get("user_id")
-		uid := int(userID.(float64))
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			return
+		}
+		uid, ok := userID.(int)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type int"})
 			return
 		}
 
@@ -181,9 +190,8 @@ func VerifySubmission() gin.HandlerFunc {
 			}
 			for _, k := range keys {
 				if k == expected {
-					
-					go IncrementHeatmapData(uid, req.Date)
-					
+					IncrementHeatmapData(uid, req.Date)
+					IncrementCoinsIfEligible(uid, req.Date)
 					UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 					go UpdateProgressData(uid, req.Rating)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
@@ -198,9 +206,8 @@ func VerifySubmission() gin.HandlerFunc {
 
 		for _, sub := range submissions {
 			if strings.ToLower(sub) == inputLower {
-				
-				go IncrementHeatmapData(uid, req.Date)
-				
+				IncrementHeatmapData(uid, req.Date)
+				IncrementCoinsIfEligible(uid, req.Date)
 				UpdateQuestionStatus(uid, req.QuestionId, req.Status)
 				go UpdateProgressData(uid, req.Rating)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
@@ -213,7 +220,7 @@ func VerifySubmission() gin.HandlerFunc {
 
 func VerifySubmissionTopicwise() gin.HandlerFunc {
 	return func(c *gin.Context) {
-	var req struct {
+		var req struct {
 			LcUsername string `json:"lcusername"`
 			CfHandle   string `json:"cfhandle"`
 			Title      string `json:"title"`
@@ -223,7 +230,11 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 			Date       string `json:"date"`
 		}
 		userID, exists := c.Get("user_id")
-		uid := int(userID.(float64))
+		uid, ok := userID.(int)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type int"})
+			return
+		}
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
 			return
@@ -245,9 +256,8 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 			}
 			for _, k := range keys {
 				if k == expected {
-					
-					go IncrementHeatmapData(uid, req.Date)
-					
+					IncrementHeatmapData(uid, req.Date)
+					IncrementCoinsIfEligible(uid, req.Date)
 					UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
 					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 					c.JSON(http.StatusOK, gin.H{"matched": true})
@@ -262,15 +272,97 @@ func VerifySubmissionTopicwise() gin.HandlerFunc {
 
 		for _, sub := range submissions {
 			if strings.ToLower(sub) == inputLower {
-				
-				go IncrementHeatmapData(uid, req.Date)
-				
-				 UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
-					go UpdateTopicWiseSheetProgress(uid, req.TopicId)
+				IncrementHeatmapData(uid, req.Date)
+				IncrementCoinsIfEligible(uid, req.Date)
+				UpdateTopicWiseSheetStatus(req.QuestionId, uid, req.Status)
+				go UpdateTopicWiseSheetProgress(uid, req.TopicId)
 				c.JSON(http.StatusOK, gin.H{"matched": true})
 				return
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"matched": false})
 	}
+}
+
+func IncrementCoinsIfEligible(userID int, today string) {
+	db := Database.DB
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var user Models.User
+		var stats Models.UserStats
+		if err := tx.Where("user_id = ?", userID).First(&user).Error; err != nil {
+			fmt.Println("DB error getting user:", err)
+			return err
+		}
+		if err := tx.Where("user_id = ?", userID).First(&stats).Error; err != nil {
+			fmt.Println("DB error getting stats:", err)
+			return err
+		}
+
+		logMap := map[string]int{}
+		if len(stats.ActivityLog) > 0 {
+			_ = json.Unmarshal(stats.ActivityLog, &logMap)
+		}
+		fmt.Printf("[DEBUG] logMap before: %+v\n", logMap)
+
+		coinKey := "coin_given_" + today
+		fmt.Printf("[DEBUG] coinKey: %s, value: %d\n", coinKey, logMap[coinKey])
+		if logMap[coinKey] > 0 {
+			fmt.Println("[DEBUG] Coin already given for today, skipping.")
+			return nil
+		}
+
+		user.Coins += 1
+		logMap[coinKey] = 1
+		fmt.Printf("[DEBUG] logMap after coin increment: %+v\n", logMap)
+
+		// Calculate streak: count consecutive days ending today
+		dates := getSortedDays(logMap)
+		streak := 1
+		if len(dates) > 0 {
+			for i := len(dates) - 1; i > 0; i-- {
+				todayTime, _ := time.Parse("2006-01-02", dates[i])
+				prevTime, _ := time.Parse("2006-01-02", dates[i-1])
+				if todayTime.Sub(prevTime).Hours() >= 24 && todayTime.Sub(prevTime).Hours() < 48 {
+					streak++
+				} else {
+					break
+				}
+			}
+		}
+		fmt.Printf("[DEBUG] streak: %d\n", streak)
+
+		if streak == 30 {
+			user.Coins += 30
+			fmt.Println("[DEBUG] 30-day streak reached, bonus coins added!")
+		}
+
+		newLog, _ := json.Marshal(logMap)
+		if err := tx.Model(&user).Update("coins", user.Coins).Error; err != nil {
+			fmt.Println("DB error updating coins:", err)
+			return err
+		} else {
+			fmt.Printf("[DEBUG] Coins updated in DB: %d\n", user.Coins)
+		}
+		if err := tx.Model(&stats).Update("activity_log", newLog).Error; err != nil {
+			fmt.Println("DB error updating activity_log:", err)
+			return err
+		} else {
+			fmt.Printf("[DEBUG] activity_log updated in DB: %s\n", string(newLog))
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Println("[DEBUG] Transaction failed:", err)
+	}
+}
+
+func getSortedDays(logMap map[string]int) []string {
+	days := []string{}
+	for k := range logMap {
+		if !strings.HasPrefix(k, "coin_given_") {
+			days = append(days, k)
+		}
+	}
+	sort.Strings(days)
+	return days
 }

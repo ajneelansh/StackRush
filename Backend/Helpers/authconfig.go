@@ -7,7 +7,6 @@ import(
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/oauth2/github"
 
 )
 
@@ -27,14 +26,6 @@ func Authconfig(){
 		RedirectURL: "http://localhost:8080/auth/callback",
 		Scopes:[]string{"https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile"} ,
 		Endpoint: google.Endpoint,
-	}
-
-	GithubOAuthConfig = &oauth2.Config{
-		ClientID: os.Getenv("GITHUB_CLIENT_ID"),
-		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
-		RedirectURL: "https://codehurdle.com/auth/callback",
-		Scopes:[]string{"user:email"} ,
-		Endpoint: github.Endpoint,
 	}
 
 }

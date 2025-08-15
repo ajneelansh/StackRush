@@ -1,52 +1,34 @@
 package Middleware
 
 import (
+	"Backend/Helpers"
+	"log"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		JwtSecret := os.Getenv("JWT_SECRET")
-		tokenString, err := c.Cookie("token")
-
+		accessToken, err := c.Cookie("access_token")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: No token provided"})
+			log.Println("AuthMiddleware: Access token cookie not found.")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required: Access token missing."})
 			c.Abort()
 			return
 		}
 
-		
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(JwtSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: Invalid token"})
-			c.Abort()
+		claims, err := Helpers.ValidateAccessToken(accessToken)
+		if err != nil {
+			log.Printf("AuthMiddleware: Invalid or expired access token: %v", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required: Invalid or expired access token."})
+			c.Abort() 
 			return
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: Invalid claims"})
-			c.Abort()
-			return
-		}
+		c.Set("user_id", claims.UserID)
 		
 
-		
-		userID, ok := claims["user_id"].(float64)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: user_id not found"})
-			c.Abort()
-			return
-		}
-
-		c.Set("user_id", userID) 
 		c.Next()
 	}
 }

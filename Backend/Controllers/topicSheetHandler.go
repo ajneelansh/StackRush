@@ -40,12 +40,11 @@ func FetchPatternsByTopic() gin.HandlerFunc {
 func FetchTopicWiseSheetsByPattern() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		patternID := c.Query("pattern_id")
-		userId, exists := c.Get("user_id")
+		uid, exists := c.Get("user_id")
 		if !exists {
 			c.JSON(401, gin.H{"error": "User ID not found in context"})
 			return
 		}
-		uid := userId.(float64)
 
 		type TopicWiseQuestionsWithStatus struct {
 			ID     int    `json:"id"`
@@ -152,7 +151,7 @@ func FetchUserTopicWiseStats() gin.HandlerFunc {
 			c.JSON(401, gin.H{"error": "User ID not found in context"})
 			return
 		}
-		uid := int(userId.(float64))
+		uid := userId
 
 		var userStats Models.UserStatsTopicWise
 		if err := Database.DB.First(&userStats, "user_id = ?", uid).Error; err != nil {
