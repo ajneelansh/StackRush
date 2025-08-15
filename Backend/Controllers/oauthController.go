@@ -88,7 +88,7 @@ func OAuthCallback() gin.HandlerFunc {
 
 		var user Models.User
 
-		result := db.WithContext(c.Request.Context()).Where("o_auth_provider = ? AND o_auth_id = ?", provider, oauthID).First(&user)
+		result := db.Where("o_auth_provider = ? AND o_auth_id = ?", provider, oauthID).First(&user)
 
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			user = Models.User{
@@ -96,7 +96,7 @@ func OAuthCallback() gin.HandlerFunc {
 				OAuthID:        oauthID,
 				Email:          email,
 				Name:           name,
-				ProfilePicture: profilePicture,
+				ProfilePicture: profilePicture, // Set only for new user
 			}
 
 			baseUsername := ""
@@ -116,7 +116,7 @@ func OAuthCallback() gin.HandlerFunc {
 			counter := 0
 			for {
 				var existingUser Models.User
-				checkResult := db.WithContext(c.Request.Context()).Where("username = ?", finalUsername).First(&existingUser)
+				checkResult := db.Where("username = ?", finalUsername).First(&existingUser)
 				if errors.Is(checkResult.Error, gorm.ErrRecordNotFound) {
 					break
 				} else if checkResult.Error != nil {
@@ -139,7 +139,7 @@ func OAuthCallback() gin.HandlerFunc {
 			user.RefreshToken = &refreshToken
 			user.RefreshTokenExpiresAt = &refreshExp
 
-			if err := db.WithContext(c.Request.Context()).Create(&user).Error; err != nil {
+			if err := db.Create(&user).Error; err != nil {
 				log.Printf("OAuthCallback: User creation failed: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user account."})
 				return
@@ -151,7 +151,7 @@ func OAuthCallback() gin.HandlerFunc {
 				TotalSolved:    0,
 				SolvedByRating: datatypes.JSON([]byte(`{"1350":0,"1500":0,"1650":0,"1800":0,"1950":0}`)),
 			}
-			if err := db.WithContext(c.Request.Context()).Create(&userStats).Error; err != nil {
+			if err := db.Create(&userStats).Error; err != nil {
 				log.Printf("OAuthCallback: UserStats creation failed for user %d: %v", user.UserId, err)
 
 			}
@@ -164,7 +164,6 @@ func OAuthCallback() gin.HandlerFunc {
 		} else {
 			user.Email = email
 			user.Name = name
-			user.ProfilePicture = profilePicture
 			accessToken, refreshToken, accessExp, refreshExp, jwtErr := Helpers.GenerateAccessAndRefreshTokens(user.UserId)
 			if jwtErr != nil {
 				log.Printf("OAuthCallback: Failed to generate JWT tokens for existing user: %v", jwtErr)
@@ -175,7 +174,7 @@ func OAuthCallback() gin.HandlerFunc {
 			user.RefreshToken = &refreshToken
 			user.RefreshTokenExpiresAt = &refreshExp
 
-			if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
+			if err := db.Save(&user).Error; err != nil {
 				log.Printf("OAuthCallback: Failed to update user %d: %v", user.UserId, err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user information."})
 				return
@@ -209,7 +208,7 @@ func RefreshAccessToken() gin.HandlerFunc {
 		db := Database.DB
 		var user Models.User
 
-		result := db.WithContext(c.Request.Context()).Where("user_id = ?", claims.UserID).First(&user)
+		result := db.Where("user_id = ?", claims.UserID).First(&user)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				log.Printf("RefreshAccessToken: User %d not found for refresh token.", claims.UserID)
@@ -227,7 +226,7 @@ func RefreshAccessToken() gin.HandlerFunc {
 
 			user.RefreshToken = nil
 			user.RefreshTokenExpiresAt = nil
-			db.WithContext(c.Request.Context()).Save(&user)
+			db.Save(&user)
 			c.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 			return
 		}
@@ -237,7 +236,7 @@ func RefreshAccessToken() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token has expired. Please log in again."})
 			user.RefreshToken = nil
 			user.RefreshTokenExpiresAt = nil
-			db.WithContext(c.Request.Context()).Save(&user)
+			db.Save(&user)
 			c.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 			return
 		}
@@ -251,7 +250,7 @@ func RefreshAccessToken() gin.HandlerFunc {
 
 		user.RefreshToken = &newRefreshToken
 		user.RefreshTokenExpiresAt = &newRefreshExp
-		if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
+		if err := db.Save(&user).Error; err != nil {
 			log.Printf("RefreshAccessToken: Failed to update refresh token for user %d: %v", user.UserId, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update authentication tokens."})
 			return
@@ -266,7 +265,7 @@ func RefreshAccessToken() gin.HandlerFunc {
 func Logout() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db := Database.DB
-		userID, exists := c.Get("user_id") 
+		userID, exists := c.Get("user_id")
 		if exists {
 			var id int
 			switch v := userID.(type) {
@@ -281,11 +280,11 @@ func Logout() gin.HandlerFunc {
 
 			if id != 0 {
 				var user Models.User
-				result := db.WithContext(c.Request.Context()).Where("user_id = ?", id).First(&user)
-				if result.Error == nil { 
+				result := db.Where("user_id = ?", id).First(&user)
+				if result.Error == nil {
 					user.RefreshToken = nil
 					user.RefreshTokenExpiresAt = nil
-					if err := db.WithContext(c.Request.Context()).Save(&user).Error; err != nil {
+					if err := db.Save(&user).Error; err != nil {
 						log.Printf("Logout: Failed to clear refresh token for user %d: %v", id, err)
 					} else {
 						log.Printf("Logout: Refresh token cleared from DB for user %d.", id)
@@ -316,7 +315,7 @@ func Logout() gin.HandlerFunc {
 			-1,
 			"/",
 			"localhost",
-			isProduction, 
+			isProduction,
 			true,
 		)
 
